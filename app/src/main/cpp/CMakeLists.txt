@@ -1,4 +1,3 @@
-
 # For more information about using CMake with Android Studio, read the
 # documentation: https://d.android.com/studio/projects/add-native-code.html.
 # For more examples on how to use CMake, see https://github.com/android/ndk-samples.
@@ -10,7 +9,7 @@ cmake_minimum_required(VERSION 3.22.1)
 # Since this is the top level CMakeLists.txt, the project name is also accessible
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
 # build script scope).
-project("metronomeplus")
+project("metronomeplus-lib")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -25,19 +24,47 @@ project("metronomeplus")
 # System.loadLibrary() and pass the name of the library defined here;
 # for GameActivity/NativeActivity derived applications, the same library name must be
 # used in the AndroidManifest.xml file.
-add_library(${CMAKE_PROJECT_NAME} SHARED
-    # List C/C++ source files with relative paths to this CMakeLists.txt.
-    metronomeplus.cpp)
+include_directories(src/main/cpp/)
+
+add_library( metronomeplus-lib
+        SHARED
+        cpp/metronomeplus-lib.cpp
+        cpp/Metronome.cpp
+        cpp/Metronome.h
+
+        #model
+        cpp/model/Tone.h
+
+        #utils
+        cpp/utils/Constants.h
+        cpp/utils/Logging.h
+
+        # audio
+        cpp/audio/AAssetDataSource.cpp
+        cpp/audio/AAssetDataSource.h
+        cpp/audio/DataSource.h
+        cpp/audio/IRenderableAudio.h
+        cpp/audio/Mixer.h
+        cpp/audio/NDKExtractor.cpp
+        cpp/audio/NDKExtractor.h
+        cpp/audio/Player.cpp
+        cpp/audio/Player.h
+)
 
 # Find the Oboe package
 find_package (oboe REQUIRED CONFIG)
 
-# Specifies libraries CMake should link to your target library. You
-# can link libraries from various origins, such as libraries defined in this
-# build script, prebuilt third-party libraries, or Android system libraries.
-target_link_libraries(${CMAKE_PROJECT_NAME}
-    # List libraries link to the target library
-    android
-    log
-    oboe::oboe
-)
+# Configure target libraries
+set(TARGET_LIBS log android oboe::oboe GLESv2)
+
+# Debug message
+MESSAGE(STATUS "Using NDK media extractor")
+
+# Add source file for NDKExtractor
+target_sources(metronomeplus-lib PRIVATE cpp/audio/NDKExtractor.cpp)
+
+# Add mediandk to the target libraries
+set(TARGET_LIBS ${TARGET_LIBS} mediandk)
+
+# Link the libraries to the target
+target_link_libraries(metronomeplus-lib ${TARGET_LIBS})
