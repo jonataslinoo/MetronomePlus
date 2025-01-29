@@ -1,9 +1,17 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Base.Theme.MetronomePlus" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@android:color/black</item>
     </style>
 
     <style name="Theme.MetronomePlus" parent="Base.Theme.MetronomePlus" />
+
+    <style name="defaultButtonStyle" parent="@android:style/Widget.Button">
+        <item name="android:textColor">@drawable/metronome_button_text_color_state</item>
+        <item name="android:background">@drawable/metronome_button_state</item>
+    </style>
+
 </resources>
