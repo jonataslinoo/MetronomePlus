@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/white_40_percent" android:state_enabled="false" />
+    <item android:color="@color/white" android:state_pressed="true" />
+    <item android:color="@color/white" android:state_enabled="true" />
+</selector>
+
+<!-- #4169E1  AZUL ROYAL -->
+<!-- #147aff  AZUL CIANO -->
+<!-- #B01B02  LARANJA FLUO-->
