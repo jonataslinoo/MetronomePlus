@@ -1,8 +1,8 @@
 package br.com.jonatas.metronomeplus.model
 
-data class Tone(val state: ToneState)
+data class Beat(val state: BeatState)
 
-enum class ToneState {
+enum class BeatState {
     Normal,
     Silence,
     Accent,
