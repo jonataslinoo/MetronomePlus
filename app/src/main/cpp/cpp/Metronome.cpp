@@ -11,28 +11,6 @@ Metronome::Metronome(AAssetManager &assetManager) : mAssetManager(assetManager) 
 DataCallbackResult Metronome::onAudioReady(oboe::AudioStream *oboeStream, void *audioData,
                                            int32_t numFrames) {
 
-//    auto *outputBuffer = static_cast<float *>(audioData);
-//
-//    int64_t nextClapEventMs;
-//
-//    for (int i = 0; i < numFrames; i++) {
-
-//        mSongPositionsMs = convertFramesToMillis(
-//                mCurrentFrame,
-//                mAudioStream->getSampleRate());
-//
-//        if (mClapEvents.peek(nextClapEventMs) && mSongPositionsMs >= nextClapEventMs) {
-//            mBaseNote->setPlaying(true);
-//            mClapEvents.pop(nextClapEventMs);
-//        }
-
-//        mMixer.renderAudio(outputBuffer + (oboeStream->getChannelCount() * i), 1);
-//        mCurrentFrame++;
-//    }
-
-//    mLastUpdateTime = nowUptimeMillis();
-
-
     mMixer.renderAudio(static_cast<float *>(audioData), numFrames);
 
     return DataCallbackResult::Continue;
@@ -45,7 +23,7 @@ void Metronome::init() {
     setupAudioSources();
 
     Result result = mAudioStream->requestStart();
-    if (result != Result::OK){
+    if (result != Result::OK) {
         LOGE("Failed to start stream. Error: %s", convertToText(result));
         return;
     }
@@ -80,107 +58,49 @@ bool Metronome::openStream() {
 }
 
 bool Metronome::setupAudioSources() {
-//    AudioProperties targetProperties{
-//            .channelCount = kChannelCount,
-//            .sampleRate = kSampleRate
-//    };
-//
-//    std::shared_ptr<AAssetDataSource> mNormalToneSource{
-//            AAssetDataSource::newFromCompressedAsset(mAssetManager,
-//                                                     kNormalTone,
-//                                                     targetProperties)
-//    };
-////    std::shared_ptr<AAssetDataSource> mNormalToneSource{
-////            AAssetDataSource::newFromCompressedAsset(mAssetManager,
-////                                                     "CLAP.mp3",
-////                                                     targetProperties)
-////    };
-//
-//    if (mNormalToneSource == nullptr) {
-//        LOGE("Could not load source data for normal tone sound");
-//        return false;
-//    }
-//
-//    mNormalTonePlayer = std::make_unique<Player>(mNormalToneSource);
-//
-//    std::shared_ptr<AAssetDataSource> mAccentToneSource{
-//            AAssetDataSource::newFromCompressedAsset(mAssetManager,
-//                                                     kAccentTone,
-//                                                     targetProperties)
-//    };
-//
-//    if (mAccentToneSource == nullptr) {
-//        LOGE("Could not load source data for accent tone sound");
-//        return false;
-//    }
-//
-//    mAccentTonePlayer = std::make_unique<Player>(mAccentToneSource);
-//
-//
-//    std::shared_ptr<AAssetDataSource> mMediumToneSource{
-//            AAssetDataSource::newFromCompressedAsset(mAssetManager,
-//                                                     kMediumTone,
-//                                                     targetProperties)
-//    };
-//
-//    if (mMediumToneSource == nullptr) {
-//        LOGE("Could not load source data for medium tone sound");
-//        return false;
-//    }
-//
-//    mMediumTonePlayer = std::make_unique<Player>(mMediumToneSource);
-
-    if(!setupPlayerTone(kNormalTone, &mNormalTonePlayer))
-    {
-        LOGE("Could not load source data for normal tone sound");
+    if (!setupPlayerBeat(kNormalBeat, &mNormalBeatPlayer)) {
+        LOGE("Could not load source data for normal beat sound");
         return false;
     }
 
-    if(!setupPlayerTone(kAccentTone, &mAccentTonePlayer))
-    {
-        LOGE("Could not load source data for accent tone sound");
+    if (!setupPlayerBeat(kAccentBeat, &mAccentBeatPlayer)) {
+        LOGE("Could not load source data for accent beat sound");
         return false;
     }
 
-    if(!setupPlayerTone(kMediumTone, &mMediumTonePlayer))
-    {
-        LOGE("Could not load source data for medium tone sound");
+    if (!setupPlayerBeat(kMediumBeat, &mMediumBeatPlayer)) {
+        LOGE("Could not load source data for medium beat sound");
         return false;
     }
 
-    mMixer.addTrack(mNormalTonePlayer.get());
-    mMixer.addTrack(mMediumTonePlayer.get());
-    mMixer.addTrack(mAccentTonePlayer.get());
+    mMixer.addTrack(mNormalBeatPlayer.get());
+    mMixer.addTrack(mMediumBeatPlayer.get());
+    mMixer.addTrack(mAccentBeatPlayer.get());
     mMixer.setChannelCount(mAudioStream->getChannelCount());
     return true;
 }
 
-bool Metronome::setupPlayerTone(const char tone[], std::unique_ptr<Player> *playerTone) {
+bool Metronome::setupPlayerBeat(const char beat[], std::unique_ptr<Player> *playerBeat) {
 
     AudioProperties targetProperties{
             .channelCount = kChannelCount,
             .sampleRate = kSampleRate
     };
 
-    std::shared_ptr<AAssetDataSource> mToneSource{
+    std::shared_ptr<AAssetDataSource> mBeatSource{
             AAssetDataSource::newFromCompressedAsset(mAssetManager,
-                                                     tone,
+                                                     beat,
                                                      targetProperties)
     };
 
-    if (mToneSource == nullptr) {
+    if (mBeatSource == nullptr) {
         return false;
     }
 
-    *playerTone = std::make_unique<Player>(mToneSource);
+    *playerBeat = std::make_unique<Player>(mBeatSource);
 
     return true;
 }
-
-
-//configure tone variables to play the desired sound
-
-//end configure tone variables to play the desired sound
 
 void Metronome::setBPM(int bpm) {
     mBPM = bpm;
@@ -188,57 +108,58 @@ void Metronome::setBPM(int bpm) {
     LOGI("BPM atualizado para: %d, Intervalo: %d ms", mBPM, mIntervalMs);
 }
 
-void Metronome::setTones(const std::vector<Tone> &notes) {
-    mNotes = notes;
-    mCurrentNoteIndex = 0; // Reinicia o índice
+void Metronome::setBeats(const std::vector<Beat> &beats) {
+    mBeats = beats;
 
-    LOGI("Notas configuradas:");
-    for (const auto &note: notes) {
-        LOGI("Estado da nota: %d", note.state);
+    LOGI("Configured beats:");
+    for (const auto &beat: beats) {
+        LOGI("Beat state: %d", beat.state);
     }
 }
 
 void Metronome::startPlaying() {
     LOGI("iniciando");
-    if (mIsPlayingNotes) return;
-    mIsPlayingNotes = true;
+    if (mIsMetronomePlaying) return;
+
+    mIsMetronomePlaying = true;
+    mCurrentBeatIndex = 0; // Reinicia o índice
+
     LOGI("iniciou");
     mClapThread = std::thread([this]() {
-        while (mIsPlayingNotes) {
-            if (mNotes.empty()) continue;
-            const Tone &currentNote = mNotes[mCurrentNoteIndex];
-            switch (currentNote.state) {
-                case ToneState::Normal:
-                    mNormalTonePlayer->setPlaying(true);
-                    LOGI("normal tone");
+        while (mIsMetronomePlaying) {
+            if (mBeats.empty()) continue;
+            const Beat &currentBeat = mBeats[mCurrentBeatIndex];
+            switch (currentBeat.state) {
+                case BeatState::Normal:
+                    mNormalBeatPlayer->setPlaying(true);
+                    LOGI("normal beat");
                     break;
 
-                case ToneState::Silence:
+                case BeatState::Silence:
                     break;
 
-                case ToneState::Accent:
-                    mAccentTonePlayer->setPlaying(true);
-                    LOGI("accent tone");
-
+                case BeatState::Accent:
+                    mAccentBeatPlayer->setPlaying(true);
+                    LOGI("accent beat");
                     break;
 
-                case ToneState::Medium:
-                    mMediumTonePlayer->setPlaying(true);
-                    LOGI("medium tone");
-
+                case BeatState::Medium:
+                    mMediumBeatPlayer->setPlaying(true);
+                    LOGI("medium beat");
                     break;
             }
 
             // Intervalo baseado no BPM
             std::this_thread::sleep_for(std::chrono::milliseconds(mIntervalMs));
+            
             // Volta ao início do compasso
-            mCurrentNoteIndex = (mCurrentNoteIndex + 1) % mNotes.size();
+            mCurrentBeatIndex = (mCurrentBeatIndex + 1) % mBeats.size();
         }
     });
 }
 
 void Metronome::stopPlaying() {
-    mIsPlayingNotes = false;
+    mIsMetronomePlaying = false;
     if (mClapThread.joinable()) {
         mClapThread.join();
     }

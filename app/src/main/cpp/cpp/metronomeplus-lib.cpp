@@ -61,7 +61,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBPM(JNIEnv *env, jo
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetTones(JNIEnv *env, jobject instance, jobjectArray jTones) {
+Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, jobject instance, jobjectArray jBeats) {
 
     if (!metronome) {
         LOGE("Game não inicializado");
@@ -69,41 +69,41 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetTones(JNIEnv *env, 
     }
 
     LOGI("Iniciando configuração de notas...");
-    std::vector<Tone> tones;
+    std::vector<Beat> beats;
 
-    jsize tonesCount = env->GetArrayLength(jTones);
+    jsize beatsCount = env->GetArrayLength(jBeats);
 
-    for (jsize i = 0; i < tonesCount; ++i) {
-        jobject jTone = env->GetObjectArrayElement(jTones, i);
-        if (jTone == nullptr) continue; // Ignora objetos nulos
+    for (jsize i = 0; i < beatsCount; ++i) {
+        jobject jBeat = env->GetObjectArrayElement(jBeats, i);
+        if (jBeat == nullptr) continue; // Ignora objetos nulos
 
-        // Obtenha a classe Tone
-        jclass toneClass = env->GetObjectClass(jTone);
-        if (toneClass == nullptr) continue;
+        // Obtenha a classe Beat
+        jclass beatClass = env->GetObjectClass(jBeat);
+        if (beatClass == nullptr) continue;
 
         // Obtenha o campo `state`
-        jfieldID stateField = env->GetFieldID(toneClass, "state", "Lbr/com/jonatas/metronomeplus/model/ToneState;");
-        jobject jState = env->GetObjectField(jTone, stateField);
+        jfieldID stateField = env->GetFieldID(beatClass, "state", "Lbr/com/jonatas/metronomeplus/model/BeatState;");
+        jobject jState = env->GetObjectField(jBeat, stateField);
         if (jState == nullptr) continue;
 
-        // Obtenha a classe ToneState
-        jclass toneStateClass = env->GetObjectClass(jState);
-        if (toneStateClass == nullptr) continue;
+        // Obtenha a classe BeatState
+        jclass beatStateClass = env->GetObjectClass(jState);
+        if (beatStateClass == nullptr) continue;
 
         // Converta o estado para um enum inteiro
-        jmethodID ordinalMethod = env->GetMethodID(toneStateClass, "ordinal", "()I");
+        jmethodID ordinalMethod = env->GetMethodID(beatStateClass, "ordinal", "()I");
         jint stateOrdinal = env->CallIntMethod(jState, ordinalMethod);
 
-        tones.push_back({static_cast<ToneState>(stateOrdinal)});
+        beats.push_back({static_cast<BeatState>(stateOrdinal)});
 
         // Libere referências locais
-        env->DeleteLocalRef(jTone);
+        env->DeleteLocalRef(jBeat);
         env->DeleteLocalRef(jState);
-        env->DeleteLocalRef(toneClass);
-        env->DeleteLocalRef(toneStateClass);
+        env->DeleteLocalRef(beatClass);
+        env->DeleteLocalRef(beatStateClass);
     }
 
-    metronome->setTones(tones);
+    metronome->setBeats(beats);
 }
 
 JNIEXPORT void JNICALL
