@@ -33,7 +33,7 @@ add_library( metronomeplus-lib
         cpp/Metronome.h
 
         #model
-        cpp/model/Tone.h
+        cpp/model/Beat.h
 
         #utils
         cpp/utils/Constants.h
