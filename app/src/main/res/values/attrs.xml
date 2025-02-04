@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="RotarySeekBar">
+        <attr name="Cenabled" format="boolean" />
+        <attr name="CinitialValue" format="integer" />
+        <attr name="CminValue" format="integer" />
+        <attr name="CmaxValue" format="integer" />
+        <attr name="CspeedMultiplier" format="float" />
+        <attr name="CknobBackgroundDrawable" format="reference" />
+        <attr name="CknobRotaryDrawable" format="reference" />
+    </declare-styleable>
+
+</resources>
