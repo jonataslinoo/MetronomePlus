@@ -1,26 +1,23 @@
 package br.com.jonatas.metronomeplus.ui
 
-import android.content.Context
 import android.content.res.AssetManager
 import android.media.AudioManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import br.com.jonatas.metronomeplus.databinding.ActivityMainBinding
-import br.com.jonatas.metronomeplus.model.Tone
-import br.com.jonatas.metronomeplus.model.ToneState
+import br.com.jonatas.metronomeplus.model.Beat
+import br.com.jonatas.metronomeplus.model.BeatState
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
 
     private val binding by lazy {
         ActivityMainBinding.inflate(layoutInflater)
     }
     private var bpm: Int = 120
     private var beats: Int = 4
-    private var tones: MutableList<Tone> = mutableListOf()
+    private var tones: MutableList<Beat> = mutableListOf()
     private var isPlaying = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,10 +44,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupConfigs() {
         native_SetBPM(bpm)
-        native_SetTones(tones.map { it }.toTypedArray())
+        native_SetBeats(tones.map { it }.toTypedArray())
     }
 
     private fun setupMetronome() {
+        //TODO verificar a utilizar de coroutines aqui para poder atualizar a interface sem travamentos.
         binding.btnPlayPause.setOnClickListener {
             if (isPlaying) {
                 binding.btnPlayPause.text = "Play"
@@ -88,19 +86,19 @@ class MainActivity : AppCompatActivity() {
         // Incrementa / decrementa a quantidade de batidas
 
         tones = mutableListOf(
-            Tone(ToneState.Accent),
-            Tone(ToneState.Normal),
-            Tone(ToneState.Silence),
-            Tone(ToneState.Normal)
+            Beat(BeatState.Accent),
+            Beat(BeatState.Normal),
+            Beat(BeatState.Normal),
+            Beat(BeatState.Normal)
         )
 
         binding.btnMoreOneBeat.setOnClickListener {
             beats += 1
             binding.beatCounter.text = beats.toString()
 
-            tones.add(Tone(ToneState.Normal))
+            tones.add(Beat(BeatState.Normal))
 
-            native_SetTones(tones.map { it }.toTypedArray())
+            native_SetBeats(tones.map { it }.toTypedArray())
         }
         binding.btnMinusOneBeat.setOnClickListener {
             beats -= 1
@@ -108,7 +106,7 @@ class MainActivity : AppCompatActivity() {
 
             tones.removeAt(tones.lastIndex)
 
-            native_SetTones(tones.map { it }.toTypedArray())
+            native_SetBeats(tones.map { it }.toTypedArray())
         }
     }
 
@@ -133,7 +131,7 @@ class MainActivity : AppCompatActivity() {
     private external fun native_onInit(assetManager: AssetManager)
     private external fun native_onEnd()
     private external fun native_SetBPM(bpm: Int)
-    private external fun native_SetTones(tones: Array<Tone>)
+    private external fun native_SetBeats(beats: Array<Beat>)
     private external fun native_onStartPlaying()
     private external fun native_onStopPlaying()
     private external fun native_setDefaultStreamValues(
@@ -147,4 +145,3 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
-
