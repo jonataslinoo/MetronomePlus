@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">MetronomePlus</string>
+    <string name="knob_background">Background Knob</string>
+    <string name="knob_rotary">Rotary knob</string>
 </resources>
