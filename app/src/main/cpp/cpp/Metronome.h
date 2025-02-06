@@ -1,0 +1,55 @@
+#ifndef METRONOMEPLUS_METRONOME_H
+#define METRONOMEPLUS_METRONOME_H
+
+#include <vector>
+#include <thread>
+#include <android/asset_manager.h>
+#include <oboe/Oboe.h>
+
+#include "model/Beat.h"
+#include "audio/Player.h"
+#include "audio/Mixer.h"
+
+using namespace oboe;
+
+class Metronome : public AudioStreamDataCallback {
+public:
+    explicit Metronome(AAssetManager &);
+
+    DataCallbackResult onAudioReady(
+            AudioStream *oboeStream, void *audioData, int32_t numFrames) override;
+
+    void init();
+    void end();
+    void setBPM(int bpm);
+    void setBeats(const std::vector<Beat> &beats);
+    void startPlaying();
+    void stopPlaying();
+
+private:
+    Mixer mMixer;
+    std::shared_ptr<AudioStream> mAudioStream;
+    std::unique_ptr<Player> mNormalBeatPlayer;
+    std::unique_ptr<Player> mAccentBeatPlayer;
+    std::unique_ptr<Player> mMediumBeatPlayer;
+
+    std::thread mClapThread;                             // Thread para tocar as palmas
+    std::vector<Beat> mBeats;                            // Notas do compasso
+    std::atomic<bool> mIsMetronomePlaying{false};     // Controle se as palmas estão tocando
+    int mBPM{60};                                        // BPM padrão
+    int mIntervalMs{1000};                               // Intervalo entre os toques em milissegundos
+    int mCurrentBeatIndex{0};                            // Índice da nota atual
+
+//    std::atomic<bool> mIsPlayingNotes{false};   // Controle se as notas estão sendo tocadas
+
+    bool openStream();
+    bool setupAudioSources();
+    bool setupPlayerBeat(const char beat[], std::unique_ptr<Player> *playerBeat);
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-private-field"
+    AAssetManager &mAssetManager;
+#pragma clang diagnostic pop
+};
+
+#endif //METRONOMEPLUS_METRONOME_H

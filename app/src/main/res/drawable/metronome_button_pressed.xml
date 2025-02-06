@@ -1,0 +1,48 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="@dimen/drawable_dimension_200dp"
+    android:height="@dimen/drawable_dimension_200dp"
+    android:viewportWidth="@dimen/drawable_viewport_400"
+    android:viewportHeight="@dimen/drawable_viewport_400">
+    <path android:pathData="m200,400c-163,0 -200,-38 -200,-200 0,-162.8 37.5,-200 200,-200 162.1,0 200,37.2 200,200 0,162 -38,200 -200,200z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="-153.73"
+                android:endY="296"
+                android:startX="33.73"
+                android:startY="-4"
+                android:type="linear">
+                <item android:color="@color/black_161616_border_button_metronome" android:offset="0" />
+                <item android:color="@color/black_1d1d1d_border_button_metronome" android:offset="0.4" />
+                <item android:color="@color/gray_474747_border_button_metronome" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="m200,365c-163,0 -165,-38 -165,-165 0,-162.8 37.5,-165 170,-165 162.1,0 165,37.2 165,165 0,162 -38,165 -165,165z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="-153.73"
+                android:endY="296"
+                android:startX="33.73"
+                android:startY="-4"
+                android:type="linear">
+                <item android:color="@color/black_25_percent" android:offset="0" />
+                <item android:color="@color/black_40_percent" android:offset="0.2" />
+                <item android:color="@color/black_70_percent" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="m200,360c-163,0 -160,-38 -160,-160 0,-162.8 37.5,-160 165,-160 162.1,0 160,37.2 160,160 0,162 -38,160 -160,160z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="-153.73"
+                android:endY="296"
+                android:startX="33.73"
+                android:startY="-4"
+                android:type="linear">
+                <item android:color="@color/black_1d1d1d_border_button_metronome" android:offset="0" />
+                <item android:color="@color/black" android:offset="1" />
+            </gradient>
+        </aapt:attr>
+    </path>
+</vector>

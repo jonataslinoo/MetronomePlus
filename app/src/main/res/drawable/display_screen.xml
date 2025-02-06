@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="@dimen/drawable_dimension_200dp"
+    android:height="@dimen/drawable_dimension_200dp"
+    android:viewportWidth="@dimen/drawable_viewport_400"
+    android:viewportHeight="@dimen/drawable_viewport_400">
+
+    <!-- Drawable size for preview -->
+    <item>
+        <shape android:shape="rectangle">
+            <size
+                android:width="400dp"
+                android:height="200dp" />
+        </shape>
+    </item>
+
+    <!-- black background -->
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#000000" />
+        </shape>
+    </item>
+
+    <!-- gray shadow bottom screen -->
+    <item
+        android:top="120dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp"/>
+            <gradient
+                android:angle="90"
+                android:endColor="#000000"
+                android:centerColor="#000000"
+                android:startColor="#7F7A7A7A"
+                android:type="linear" />
+        </shape>
+    </item>
+
+    <!--  black plate two - continued -->
+    <item
+        android:bottom="1.5dp"
+        android:end="1.5dp"
+        android:top="5.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp" />
+            <solid android:color="#000000" />
+        </shape>
+    </item>
+
+    <!-- top white border -->
+    <item
+        android:bottom="4dp"
+        android:end="4dp"
+        android:left="5dp"
+        android:top="5dp">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="0.5dp"
+                android:color="#7FFFFFFF" />
+            <corners android:radius="6dp"/>
+            <solid android:color="#000000" />
+        </shape>
+    </item>
+
+    <!--  black plate three -->
+    <item
+        android:bottom="1.5dp"
+        android:end="1.5dp"
+        android:left="5.5dp"
+        android:top="5.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="8dp"
+                android:bottomLeftRadius="2dp"/>
+            <solid android:color="#000000" />
+        </shape>
+    </item>
+
+    <!-- Screen -->
+    <item
+        android:bottom="5dp"
+        android:end="3dp"
+        android:left="5.5dp"
+        android:top="5.5dp">
+        <shape android:shape="rectangle">
+            <corners android:radius="6dp" />
+            <solid android:color="#141414" />
+        </shape>
+    </item>
+
+    <!-- Screen red -->
+    <item
+        android:bottom="15dp"
+        android:end="25dp"
+        android:left="25dp"
+        android:top="15dp">
+        <shape android:shape="rectangle">
+            <stroke
+                android:width="1dp"
+                android:color="#7F0D0D0D" />
+            <corners android:radius="4dp" />
+            <solid android:color="#1D1010" />
+        </shape>
+    </item>
+
+</layer-list>
