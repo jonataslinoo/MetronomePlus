@@ -12,6 +12,14 @@
 
 using namespace oboe;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+void notifyUiChangeBeat(int beatIndex);
+#ifdef __cplusplus
+}
+#endif
+
 class Metronome : public AudioStreamDataCallback {
 public:
     explicit Metronome(AAssetManager &);
@@ -39,8 +47,6 @@ private:
     int mBPM{60};                                        // BPM padrão
     int mIntervalMs{1000};                               // Intervalo entre os toques em milissegundos
     int mCurrentBeatIndex{0};                            // Índice da nota atual
-
-//    std::atomic<bool> mIsPlayingNotes{false};   // Controle se as notas estão sendo tocadas
 
     bool openStream();
     bool setupAudioSources();
