@@ -126,9 +126,14 @@ void Metronome::startPlaying() {
 
     LOGI("iniciou");
     mClapThread = std::thread([this]() {
+        int totalBeatsPerMeasure = mBeats.size();
+
         while (mIsMetronomePlaying) {
             if (mBeats.empty()) continue;
             const Beat &currentBeat = mBeats[mCurrentBeatIndex];
+
+            notifyUiChangeBeat(mCurrentBeatIndex);
+
             switch (currentBeat.state) {
                 case BeatState::Normal:
                     mNormalBeatPlayer->setPlaying(true);
@@ -149,11 +154,9 @@ void Metronome::startPlaying() {
                     break;
             }
 
-            // Intervalo baseado no BPM
             std::this_thread::sleep_for(std::chrono::milliseconds(mIntervalMs));
-            
-            // Volta ao início do compasso
-            mCurrentBeatIndex = (mCurrentBeatIndex + 1) % mBeats.size();
+            mCurrentBeatIndex = (mCurrentBeatIndex + 1) % totalBeatsPerMeasure;
+            totalBeatsPerMeasure = mBeats.size();
         }
     });
 }
