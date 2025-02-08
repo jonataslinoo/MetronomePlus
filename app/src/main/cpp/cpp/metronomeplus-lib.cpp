@@ -54,14 +54,16 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onEnd(JNIEnv *env, job
 //***********************************************
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBPM(JNIEnv *env, jobject instance, jint bpm) {
+Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBPM(JNIEnv *env, jobject instance,
+                                                                 jint bpm) {
     if (metronome) {
         metronome->setBPM(bpm); // Atualiza o BPM e o intervalo
     }
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, jobject instance, jobjectArray jBeats) {
+Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, jobject instance,
+                                                                   jobjectArray jBeats) {
 
     if (!metronome) {
         LOGE("Game não inicializado");
@@ -82,7 +84,8 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, 
         if (beatClass == nullptr) continue;
 
         // Obtenha o campo `state`
-        jfieldID stateField = env->GetFieldID(beatClass, "state", "Lbr/com/jonatas/metronomeplus/model/BeatState;");
+        jfieldID stateField = env->GetFieldID(beatClass, "state",
+                                              "Lbr/com/jonatas/metronomeplus/model/BeatState;");
         jobject jState = env->GetObjectField(jBeat, stateField);
         if (jState == nullptr) continue;
 
@@ -107,14 +110,16 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, 
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStartPlaying(JNIEnv *env, jobject instance) {
+Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStartPlaying(JNIEnv *env,
+                                                                         jobject instance) {
     if (metronome) {
         metronome->startPlaying();
     }
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStopPlaying(JNIEnv *env, jobject instance) {
+Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStopPlaying(JNIEnv *env,
+                                                                        jobject instance) {
     if (metronome) {
         metronome->stopPlaying();
     }
@@ -122,10 +127,43 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStopPlaying(JNIEnv *
 
 JNIEXPORT void JNICALL
 Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1setDefaultStreamValues(JNIEnv *env,
-                                                                                    jobject instance,
-                                                                                    jint sampleRate,
-                                                                                    jint framesPerBurst) {
+                                                                                 jobject instance,
+                                                                                 jint sampleRate,
+                                                                                 jint framesPerBurst) {
     oboe::DefaultStreamValues::SampleRate = (int32_t) sampleRate;
     oboe::DefaultStreamValues::FramesPerBurst = (int32_t) framesPerBurst;
 }
+
+JavaVM* gJvm = nullptr;
+jobject gListener = nullptr;
+
+JNIEXPORT void JNICALL
+Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1setListener(JNIEnv *env, jobject thiz,
+                                                                     jobject listener) {
+    env->GetJavaVM(&gJvm);
+    gListener = env->NewGlobalRef(listener);
+}
+
+void notifyUiChangeBeat(int beatIndex) {
+    if (!gJvm || !gListener) return;
+
+    JNIEnv *env;
+    bool didAttach = false;
+
+    if (gJvm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK) {
+        gJvm->AttachCurrentThread(&env, nullptr);
+        didAttach = true;
+    }
+
+    jclass listenerClass = env->GetObjectClass(gListener);
+    jmethodID methodId = env->GetMethodID(listenerClass, "onBeat", "(I)V");
+    if (methodId) {
+        env->CallVoidMethod(gListener, methodId, beatIndex);
+    }
+
+    if (didAttach) {
+        gJvm->DetachCurrentThread();
+    }
+}
+
 }
