@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.ui
+package br.com.jonatas.metronomeplus.presenter.ui
 
 import android.content.res.AssetManager
 import android.media.AudioManager
@@ -7,8 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import br.com.jonatas.metronomeplus.databinding.ActivityMainBinding
-import br.com.jonatas.metronomeplus.model.Beat
-import br.com.jonatas.metronomeplus.model.BeatState
+import br.com.jonatas.metronomeplus.domain.model.Beat
+import br.com.jonatas.metronomeplus.domain.model.BeatState
 
 class MainActivity : BaseActivity() {
 
