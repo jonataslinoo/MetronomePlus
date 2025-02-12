@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.teste
+package br.com.jonatas.metronomeplus.core
 
 import android.view.MotionEvent
 import kotlin.math.abs
