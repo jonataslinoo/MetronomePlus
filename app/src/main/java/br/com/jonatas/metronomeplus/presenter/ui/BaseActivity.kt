@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.ui
+package br.com.jonatas.metronomeplus.presenter.ui
 
 import android.content.Context
 import android.util.DisplayMetrics
