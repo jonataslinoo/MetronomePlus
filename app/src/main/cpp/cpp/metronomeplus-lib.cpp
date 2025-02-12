@@ -27,12 +27,12 @@ extern "C" {
 std::unique_ptr<Metronome> metronome;
 
 JNIEXPORT jstring JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_helloC(JNIEnv *env, jobject instance) {
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_helloC(JNIEnv *env, jobject instance) {
     return (*env).NewStringUTF("Hello C/C++");
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onInit(JNIEnv *env, jobject instance,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1onInit(JNIEnv *env, jobject instance,
                                                                  jobject asset_manager) {
 
     AAssetManager *assetManager = AAssetManager_fromJava(env, asset_manager);
@@ -46,7 +46,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onInit(JNIEnv *env, jo
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onEnd(JNIEnv *env, jobject instance) {
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1onEnd(JNIEnv *env, jobject instance) {
 
     metronome->end();
 }
@@ -54,7 +54,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onEnd(JNIEnv *env, job
 //***********************************************
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBPM(JNIEnv *env, jobject instance,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1SetBPM(JNIEnv *env, jobject instance,
                                                                  jint bpm) {
     if (metronome) {
         metronome->setBPM(bpm); // Atualiza o BPM e o intervalo
@@ -62,7 +62,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBPM(JNIEnv *env, jo
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, jobject instance,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1SetBeats(JNIEnv *env, jobject instance,
                                                                    jobjectArray jBeats) {
 
     if (!metronome) {
@@ -85,7 +85,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, 
 
         // Obtenha o campo `state`
         jfieldID stateField = env->GetFieldID(beatClass, "state",
-                                              "Lbr/com/jonatas/metronomeplus/model/BeatState;");
+                                              "Lbr/com/jonatas/metronomeplus/domain/model/BeatState;");
         jobject jState = env->GetObjectField(jBeat, stateField);
         if (jState == nullptr) continue;
 
@@ -110,7 +110,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1SetBeats(JNIEnv *env, 
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStartPlaying(JNIEnv *env,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1onStartPlaying(JNIEnv *env,
                                                                          jobject instance) {
     if (metronome) {
         metronome->startPlaying();
@@ -118,7 +118,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStartPlaying(JNIEnv 
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStopPlaying(JNIEnv *env,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1onStopPlaying(JNIEnv *env,
                                                                         jobject instance) {
     if (metronome) {
         metronome->stopPlaying();
@@ -126,7 +126,7 @@ Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1onStopPlaying(JNIEnv *
 }
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1setDefaultStreamValues(JNIEnv *env,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1setDefaultStreamValues(JNIEnv *env,
                                                                                  jobject instance,
                                                                                  jint sampleRate,
                                                                                  jint framesPerBurst) {
@@ -138,7 +138,7 @@ JavaVM* gJvm = nullptr;
 jobject gListener = nullptr;
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_ui_MainActivity_native_1setListener(JNIEnv *env, jobject thiz,
+Java_br_com_jonatas_metronomeplus_presenter_ui_MainActivity_native_1setListener(JNIEnv *env, jobject thiz,
                                                                      jobject listener) {
     env->GetJavaVM(&gJvm);
     gListener = env->NewGlobalRef(listener);
