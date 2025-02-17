@@ -75,7 +75,7 @@ class MetronomeFragment : Fragment() {
     }
 
     private fun setupClickListener() {
-        binding.btnPlayPause.setOnClickListener { viewModel.tooglePlayPause() }
+        binding.btnPlayPause.setOnClickListener { viewModel.togglePlayPause() }
     }
 
     override fun onDestroyView() {
