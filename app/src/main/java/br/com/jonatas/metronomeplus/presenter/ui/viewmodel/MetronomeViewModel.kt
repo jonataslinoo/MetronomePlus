@@ -65,7 +65,7 @@ class MetronomeViewModel(
         }
     }
 
-    fun tooglePlayPause() {
+    fun togglePlayPause() {
         val currentState = _uiState.value
         if (currentState is MetronomeState.Ready) {
             val newIsPlaying = !currentState.isPlaying
