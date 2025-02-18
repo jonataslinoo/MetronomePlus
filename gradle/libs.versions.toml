@@ -1,18 +1,28 @@
 [versions]
+#Plugins
 agp = "8.7.2"
 kotlin = "2.0.0"
+#Core
 coreKtx = "1.14.0-alpha01"
-junit = "4.13.2"
+#Testing
 junitVersion = "1.2.1"
 espressoCore = "3.6.1"
-appcompat = "1.7.0"
-material = "1.12.0"
+junit = "4.13.2"
+mockitoCore = "5.15.2"
+mockitoKotlin = "5.4.0"
+kotlinxCoroutinesTest = "1.10.1"
+#UI
 activity = "1.9.3"
+appcompat = "1.7.0"
 constraintlayout = "2.2.0"
-oboe = "1.9.0"
-lifecycle = "2.8.7"
 fragment = "1.8.6"
-kotlinxCoroutinesCore = "1.10.1"
+material = "1.12.0"
+#Audio
+oboe = "1.9.0"
+#Lifecycle
+lifecycle = "2.8.7"
+#Coroutines
+coroutines = "1.10.1"
 
 [libraries]
 #Core
@@ -22,6 +32,9 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockitoCore" }
+mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesTest" }
 
 #UI libraries
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
@@ -38,7 +51,8 @@ androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecyc
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
 
 #Coroutines components
-kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinxCoroutinesCore" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
