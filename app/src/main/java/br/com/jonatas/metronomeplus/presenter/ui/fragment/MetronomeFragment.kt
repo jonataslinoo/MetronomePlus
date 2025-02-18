@@ -12,7 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import br.com.jonatas.metronomeplus.data.engine.MetronomeEngineImpl
 import br.com.jonatas.metronomeplus.data.provider.AssetProviderImpl
 import br.com.jonatas.metronomeplus.data.provider.AudioSettingProviderImpl
-import br.com.jonatas.metronomeplus.data.provider.MeasureRepositoryImpl
+import br.com.jonatas.metronomeplus.data.repository.MeasureRepositoryImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentMetronomeBinding
 import br.com.jonatas.metronomeplus.presenter.ui.viewmodel.MetronomeViewModel
 import br.com.jonatas.metronomeplus.presenter.ui.viewmodel.MetronomeViewModelFactory
