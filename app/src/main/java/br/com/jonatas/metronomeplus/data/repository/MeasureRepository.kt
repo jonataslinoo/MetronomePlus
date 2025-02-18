@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.data.provider
+package br.com.jonatas.metronomeplus.data.repository
 
 import br.com.jonatas.metronomeplus.domain.model.Measure
 
