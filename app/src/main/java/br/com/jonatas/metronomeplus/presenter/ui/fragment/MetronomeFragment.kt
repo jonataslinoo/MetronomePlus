@@ -12,6 +12,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import br.com.jonatas.metronomeplus.data.engine.MetronomeEngineImpl
 import br.com.jonatas.metronomeplus.data.provider.AssetProviderImpl
 import br.com.jonatas.metronomeplus.data.provider.AudioSettingProviderImpl
+import br.com.jonatas.metronomeplus.data.provider.MeasureRepositoryImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentMetronomeBinding
 import br.com.jonatas.metronomeplus.presenter.ui.viewmodel.MetronomeViewModel
 import br.com.jonatas.metronomeplus.presenter.ui.viewmodel.MetronomeViewModelFactory
@@ -52,7 +53,7 @@ class MetronomeFragment : Fragment() {
 
                         is MetronomeViewModel.MetronomeState.Ready -> {
                             binding.btnPlayPause.text =
-                                if (uiState.isPlaying) "Pause" else "Play"
+                                if (uiState.measure.isPlaying) "Pause" else "Play"
                         }
 
                         is MetronomeViewModel.MetronomeState.Error -> {
@@ -68,7 +69,8 @@ class MetronomeFragment : Fragment() {
         val viewModelFactory = MetronomeViewModelFactory(
             MetronomeEngineImpl(),
             AssetProviderImpl(requireContext().applicationContext),
-            AudioSettingProviderImpl(requireContext().applicationContext)
+            AudioSettingProviderImpl(requireContext().applicationContext),
+            MeasureRepositoryImpl()
         )
 
         viewModel = ViewModelProvider(this, viewModelFactory)[MetronomeViewModel::class.java]
