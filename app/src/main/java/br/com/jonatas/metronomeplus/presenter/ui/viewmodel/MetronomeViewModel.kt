@@ -2,21 +2,27 @@ package br.com.jonatas.metronomeplus.presenter.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.data.provider.AssetProvider
 import br.com.jonatas.metronomeplus.data.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.data.provider.MeasureRepository
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.model.Measure
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class MetronomeViewModel(
     private val metronomeEngine: MetronomeEngine,
     private val assetProvider: AssetProvider,
     private val audioSettingsProvider: AudioSettingsProvider,
-    private val measureRepository: MeasureRepository
+    private val measureRepository: MeasureRepository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MetronomeState>(MetronomeState.Initial)
@@ -60,16 +66,20 @@ class MetronomeViewModel(
     }
 
     fun togglePlayPause() {
-        val currentState = _uiState.value
-        if (currentState is MetronomeState.Ready) {
-            val newIsPlaying = !currentState.measure.isPlaying
-            _uiState.value =
-                currentState.copy(measure = currentState.measure.copy(isPlaying = newIsPlaying))
+        viewModelScope.launch(dispatcher) {
+            val currentState = _uiState.value
+            if (currentState is MetronomeState.Ready) {
+                val newIsPlaying = !currentState.measure.isPlaying
+                _uiState.value =
+                    currentState.copy(measure = currentState.measure.copy(isPlaying = newIsPlaying))
 
-            if (newIsPlaying) {
-                metronomeEngine.startPlaying()
-            } else {
-                metronomeEngine.stopPlaying()
+                mutex.withLock {
+                    if (newIsPlaying) {
+                        metronomeEngine.startPlaying()
+                    } else {
+                        metronomeEngine.stopPlaying()
+                    }
+                }
             }
         }
     }
@@ -84,7 +94,8 @@ class MetronomeViewModelFactory(
     private val metronomeEngine: MetronomeEngine,
     private val assetProvider: AssetProvider,
     private val audioSettingsProvider: AudioSettingsProvider,
-    private val measureRepository: MeasureRepository
+    private val measureRepository: MeasureRepository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
@@ -94,7 +105,8 @@ class MetronomeViewModelFactory(
                 metronomeEngine,
                 assetProvider,
                 audioSettingsProvider,
-                measureRepository
+                measureRepository,
+                dispatcher
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
