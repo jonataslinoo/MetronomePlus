@@ -1,9 +1,9 @@
 package br.com.jonatas.metronomeplus.presenter.ui.viewmodel
 
 import android.content.res.AssetManager
-import br.com.jonatas.metronomeplus.data.provider.AssetProvider
-import br.com.jonatas.metronomeplus.data.provider.AudioSettingsProvider
-import br.com.jonatas.metronomeplus.data.repository.MeasureRepository
+import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
+import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
+import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.model.Beat
 import br.com.jonatas.metronomeplus.domain.model.BeatState
