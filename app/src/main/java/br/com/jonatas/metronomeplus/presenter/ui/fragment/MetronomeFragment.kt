@@ -13,9 +13,10 @@ import br.com.jonatas.metronomeplus.data.engine.MetronomeEngineImpl
 import br.com.jonatas.metronomeplus.data.provider.AssetProviderImpl
 import br.com.jonatas.metronomeplus.data.provider.AudioSettingProviderImpl
 import br.com.jonatas.metronomeplus.data.repository.MeasureRepositoryImpl
+import br.com.jonatas.metronomeplus.data.source.MeasureDataSourceImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentMetronomeBinding
-import br.com.jonatas.metronomeplus.presenter.ui.viewmodel.MetronomeViewModel
-import br.com.jonatas.metronomeplus.presenter.ui.viewmodel.MetronomeViewModelFactory
+import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
+import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModelFactory
 import kotlinx.coroutines.launch
 
 class MetronomeFragment : Fragment() {
@@ -47,7 +48,7 @@ class MetronomeFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { uiState ->
                     when (uiState) {
-                        is MetronomeViewModel.MetronomeState.Initial -> {
+                        is MetronomeViewModel.MetronomeState.Loading -> {
                             // Initialize state flow
                         }
 
@@ -70,7 +71,7 @@ class MetronomeFragment : Fragment() {
             MetronomeEngineImpl(),
             AssetProviderImpl(requireContext().applicationContext),
             AudioSettingProviderImpl(requireContext().applicationContext),
-            MeasureRepositoryImpl()
+            MeasureRepositoryImpl(MeasureDataSourceImpl())
         )
 
         viewModel = ViewModelProvider(this, viewModelFactory)[MetronomeViewModel::class.java]

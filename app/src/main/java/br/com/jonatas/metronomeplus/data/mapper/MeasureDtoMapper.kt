@@ -6,7 +6,6 @@ import br.com.jonatas.metronomeplus.domain.model.Beat
 import br.com.jonatas.metronomeplus.domain.model.Measure
 
 fun MeasureDto.toDomain() = Measure(
-    isPlaying = isPlaying,
     bpm = bpm,
     beats = beats.toDomain()
 )
