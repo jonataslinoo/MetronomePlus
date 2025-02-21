@@ -1,18 +1,23 @@
 package br.com.jonatas.metronomeplus.presenter.ui.viewmodel
 
 import android.content.res.AssetManager
+import br.com.jonatas.metronomeplus.data.model.BeatDto
+import br.com.jonatas.metronomeplus.data.model.BeatStateDto
+import br.com.jonatas.metronomeplus.data.model.MeasureDto
+import br.com.jonatas.metronomeplus.data.repository.MeasureRepositoryImpl
+import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
-import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
-import br.com.jonatas.metronomeplus.domain.model.Beat
-import br.com.jonatas.metronomeplus.domain.model.BeatState
-import br.com.jonatas.metronomeplus.domain.model.Measure
+import br.com.jonatas.metronomeplus.domain.source.MeasureDataSource
+import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -39,39 +44,22 @@ class MetronomeViewModelTest {
     private lateinit var mockAudioSettingProvider: AudioSettingsProvider
 
     @Mock
-    private lateinit var mockMeasureRepository: MeasureRepository
+    private lateinit var mockDataSource: MeasureDataSource
     private lateinit var viewModel: MetronomeViewModel
-    private val testDispatchers = StandardTestDispatcher()
+    private val testDispatcher = StandardTestDispatcher()
+    private val measureRepository: MeasureRepository by lazy {
+        MeasureRepositoryImpl(mockDataSource)
+    }
 
     @Before
     fun setup() {
         MockitoAnnotations.openMocks(this)
-        Dispatchers.setMain(testDispatchers)
+        Dispatchers.setMain(testDispatcher)
 
         val mockAssetManager = mock(AssetManager::class.java)
         `when`(mockAssetProvider.getAssets()).thenReturn(mockAssetManager)
         `when`(mockAudioSettingProvider.getSampleRate()).thenReturn(48000)
         `when`(mockAudioSettingProvider.getFramesPerBurst()).thenReturn(256)
-        `when`(mockMeasureRepository.getMeasure).thenReturn(
-            Measure(
-                isPlaying = false,
-                bpm = 120,
-                beats = mutableListOf(
-                    Beat(state = BeatState.Accent),
-                    Beat(state = BeatState.Normal),
-                    Beat(state = BeatState.Normal),
-                    Beat(state = BeatState.Normal)
-                )
-            )
-        )
-
-        viewModel = MetronomeViewModel(
-            mockMetronomeEngine,
-            mockAssetProvider,
-            mockAudioSettingProvider,
-            mockMeasureRepository,
-            UnconfinedTestDispatcher(testDispatchers.scheduler)
-        )
     }
 
     @After
@@ -80,27 +68,54 @@ class MetronomeViewModelTest {
     }
 
     @Test
-    fun `togglePlayPause should toggle isPlaying and call metronome engine`() = runTest {
-        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.collect { states.add(it) }
+    fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
+        runTest {
+
+            val measureDto = MeasureDto(
+                bpm = 120,
+                mutableListOf(
+                    BeatDto(BeatStateDto.Accent),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                )
+            )
+
+            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+            viewModel = MetronomeViewModel(
+                mockMetronomeEngine,
+                mockAssetProvider,
+                mockAudioSettingProvider,
+                measureRepository,
+                testDispatcher
+            )
+
+            val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            assertEquals(
+                states.first(),
+                MetronomeViewModel.MetronomeState.Loading
+            )
+
+            viewModel.togglePlayPause()
+            advanceUntilIdle()
+            assertEquals(
+                true,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.isPlaying
+            )
+            verify(mockMetronomeEngine).startPlaying()
+
+            viewModel.togglePlayPause()
+            advanceUntilIdle()
+            assertEquals(
+                false,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.isPlaying
+            )
+            verify(mockMetronomeEngine).stopPlaying()
+            job.cancel()
         }
-
-        viewModel.togglePlayPause()
-        testDispatchers.scheduler.advanceUntilIdle()
-        assertEquals(
-            true,
-            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.isPlaying
-        )
-        verify(mockMetronomeEngine).startPlaying()
-
-        viewModel.togglePlayPause()
-        testDispatchers.scheduler.advanceUntilIdle()
-        assertEquals(
-            false,
-            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.isPlaying
-        )
-        verify(mockMetronomeEngine).stopPlaying()
-        job.cancel()
-    }
 }
