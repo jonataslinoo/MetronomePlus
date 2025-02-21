@@ -45,11 +45,19 @@ class MetronomeViewModelTest {
 
     @Mock
     private lateinit var mockDataSource: MeasureDataSource
-    private lateinit var viewModel: MetronomeViewModel
-    private val testDispatcher = StandardTestDispatcher()
     private val measureRepository: MeasureRepository by lazy {
         MeasureRepositoryImpl(mockDataSource)
     }
+    private val viewModel by lazy {
+        MetronomeViewModel(
+            mockMetronomeEngine,
+            mockAssetProvider,
+            mockAudioSettingProvider,
+            measureRepository,
+            testDispatcher
+        )
+    }
+    private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
@@ -68,28 +76,45 @@ class MetronomeViewModelTest {
     }
 
     @Test
-    fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
+    fun `should start metronome in Loading state when MetronomeViewModel is initialized`() =
         runTest {
-
             val measureDto = MeasureDto(
                 bpm = 120,
-                mutableListOf(
+                beats = mutableListOf(
                     BeatDto(BeatStateDto.Accent),
                     BeatDto(BeatStateDto.Normal),
                     BeatDto(BeatStateDto.Normal),
                     BeatDto(BeatStateDto.Normal),
                 )
             )
-
             `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
 
-            viewModel = MetronomeViewModel(
-                mockMetronomeEngine,
-                mockAssetProvider,
-                mockAudioSettingProvider,
-                measureRepository,
-                testDispatcher
+            val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            assertEquals(
+                MetronomeViewModel.MetronomeState.Loading,
+                states.first()
             )
+
+            job.cancel()
+        }
+
+    @Test
+    fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
+        runTest {
+            val measureDto = MeasureDto(
+                bpm = 120,
+                beats = mutableListOf(
+                    BeatDto(BeatStateDto.Accent),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                )
+            )
+            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
