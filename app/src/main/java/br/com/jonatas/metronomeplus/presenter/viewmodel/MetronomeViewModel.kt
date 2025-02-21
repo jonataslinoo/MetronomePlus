@@ -54,9 +54,12 @@ class MetronomeViewModel(
 
     private fun loadData() {
         viewModelScope.launch {
-            _uiState.value = MetronomeState.Ready(
-                measure = measureRepository.getMeasure().toUiModel()
-            )
+            try {
+                val measure = measureRepository.getMeasure().toUiModel()
+                _uiState.value = MetronomeState.Ready(measure)
+            } catch (ex: Exception) {
+                _uiState.value = MetronomeState.Error("Error: ${ex.message}")
+            }
         }
     }
 
