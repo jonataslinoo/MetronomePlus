@@ -10,6 +10,9 @@ import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
 import br.com.jonatas.metronomeplus.domain.source.MeasureDataSource
+import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
+import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
+import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -101,6 +104,49 @@ class MetronomeViewModelTest {
 
             job.cancel()
         }
+
+    @Test
+    fun `shuould transition to Ready state when data loading is successful`() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 120,
+            beats = mutableListOf(
+                BeatDto(BeatStateDto.Accent),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal)
+            )
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        assertEquals(
+            MetronomeViewModel.MetronomeState.Loading,
+            states.first()
+        )
+
+        advanceUntilIdle()
+        assertEquals(
+            MetronomeViewModel.MetronomeState.Ready(
+                MeasureUiModel(
+                    isPlaying = false,
+                    bpm = 120,
+                    beats = mutableListOf(
+                        BeatUiModel(BeatStateUiModel.Accent),
+                        BeatUiModel(BeatStateUiModel.Normal),
+                        BeatUiModel(BeatStateUiModel.Normal),
+                        BeatUiModel(BeatStateUiModel.Normal)
+                    )
+                )
+            ),
+            states.last()
+        )
+
+        job.cancel()
+    }
 
     @Test
     fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
