@@ -1,21 +1,14 @@
 package br.com.jonatas.metronomeplus.data.repository
 
-import br.com.jonatas.metronomeplus.domain.model.Beat
-import br.com.jonatas.metronomeplus.domain.model.BeatState
+import br.com.jonatas.metronomeplus.data.mapper.toDomain
 import br.com.jonatas.metronomeplus.domain.model.Measure
+import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
+import br.com.jonatas.metronomeplus.domain.source.MeasureDataSource
 
-class MeasureRepositoryImpl() : MeasureRepository {
-    override val getMeasure: Measure
-        get() = measure
-
-    private var measure: Measure = Measure(
-        isPlaying = false,
-        bpm = 120,
-        beats = mutableListOf(
-            Beat(BeatState.Accent),
-            Beat(BeatState.Normal),
-            Beat(BeatState.Normal),
-            Beat(BeatState.Normal),
-        )
-    )
+class MeasureRepositoryImpl(
+    private val measureDataSource: MeasureDataSource
+) : MeasureRepository {
+    override suspend fun getMeasure(): Measure {
+        return measureDataSource.getMeasure().toDomain()
+    }
 }
