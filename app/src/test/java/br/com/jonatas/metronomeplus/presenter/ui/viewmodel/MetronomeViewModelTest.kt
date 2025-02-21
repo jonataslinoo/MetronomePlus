@@ -149,6 +149,29 @@ class MetronomeViewModelTest {
     }
 
     @Test
+    fun `should transition to Error state when data loading fails`() = runTest {
+        `when`(mockDataSource.getMeasure()).thenThrow(RuntimeException("Data Loading failure"))
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        advanceUntilIdle()
+        assertEquals(
+            MetronomeViewModel.MetronomeState.Loading,
+            states.first()
+        )
+
+        advanceUntilIdle()
+        assertEquals(
+            MetronomeViewModel.MetronomeState.Error("Error: Data Loading failure"),
+            states.last(),
+        )
+        job.cancel()
+    }
+
+    @Test
     fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
         runTest {
             val measureDto = MeasureDto(
