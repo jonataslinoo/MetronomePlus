@@ -55,13 +55,13 @@ android {
 dependencies {
     //Core
     implementation(libs.androidx.core.ktx)
-    implementation(libs.kotlinx.coroutines.test)
     //Testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
-    implementation(libs.mockito.core)
-    implementation(libs.mockito.kotlin)
+    testImplementation(libs.mockito.core)
+    testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
     //UI
     implementation(libs.androidx.activity)
     implementation(libs.androidx.appcompat)
