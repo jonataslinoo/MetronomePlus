@@ -172,6 +172,15 @@ class MetronomeViewModelTest {
     }
 
     @Test
+    fun `should cleanup metronome when the MetronomeViewModel is cleared`() = runTest {
+        val method = MetronomeViewModel::class.java.getDeclaredMethod("onCleared")
+        method.isAccessible = true
+        method.invoke(viewModel)
+
+        verify(mockMetronomeEngine).cleanup()
+    }
+
+    @Test
     fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
         runTest {
             val measureDto = MeasureDto(
