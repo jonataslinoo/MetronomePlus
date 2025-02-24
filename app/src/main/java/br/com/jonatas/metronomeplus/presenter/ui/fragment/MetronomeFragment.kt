@@ -54,8 +54,12 @@ class MetronomeFragment : Fragment() {
                         }
 
                         is MetronomeViewModel.MetronomeState.Ready -> {
-                            binding.btnPlayPause.text =
-                                if (uiState.measure.isPlaying) "Pause" else "Play"
+                            binding.apply {
+                                btnPlayPause.text =
+                                    if (uiState.measure.isPlaying) "Pause" else "Play"
+
+                                tvBpm.text = uiState.measure.bpm.toString()
+                            }
                         }
 
                         is MetronomeViewModel.MetronomeState.Error -> {
@@ -81,6 +85,8 @@ class MetronomeFragment : Fragment() {
 
     private fun setupClickListener() {
         binding.btnPlayPause.setOnClickListener { viewModel.togglePlayPause() }
+        binding.btnMoreOne.setOnClickListener { viewModel.increaseBpm(1) }
+        binding.btnMoreThen.setOnClickListener { viewModel.increaseBpm(10) }
     }
 
     override fun onDestroyView() {
