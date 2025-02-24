@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.presenter.ui.viewmodel
+package br.com.jonatas.metronomeplus.presenter.viewmodel
 
 import android.content.res.AssetManager
 import br.com.jonatas.metronomeplus.data.model.BeatDto
@@ -13,7 +13,6 @@ import br.com.jonatas.metronomeplus.domain.source.MeasureDataSource
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
-import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.toList
