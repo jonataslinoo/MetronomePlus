@@ -32,6 +32,7 @@ import org.mockito.Mockito.mock
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
+import org.mockito.kotlin.never
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class MetronomeViewModelTest {
@@ -220,4 +221,50 @@ class MetronomeViewModelTest {
             verify(mockMetronomeEngine).stopPlaying()
             job.cancel()
         }
+
+    @Test
+    fun `should increase bpm when increaseBpm is called with a positive value`() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 120,
+            beats = mutableListOf()
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        viewModel.increaseBpm(10)
+        advanceUntilIdle()
+        assertEquals(
+            130,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+        )
+        verify(mockMetronomeEngine).setBpm(130)
+        job.cancel()
+    }
+
+    @Test
+    fun `should not increase bpm when increaseBpm is called with a negative value`() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 120,
+            beats = mutableListOf()
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        viewModel.increaseBpm(-10)
+        advanceUntilIdle()
+        assertEquals(
+            120,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+        )
+        verify(mockMetronomeEngine, never()).setBpm(120)
+        job.cancel()
+    }
 }
