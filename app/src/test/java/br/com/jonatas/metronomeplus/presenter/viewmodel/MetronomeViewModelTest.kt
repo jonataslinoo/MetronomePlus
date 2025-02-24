@@ -267,4 +267,73 @@ class MetronomeViewModelTest {
         verify(mockMetronomeEngine, never()).setBpm(120)
         job.cancel()
     }
+
+    @Test
+    fun `should decrease bpm when decreaseBpm is called with a negative value`() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 120,
+            beats = mutableListOf()
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        viewModel.decreaseBpm(-10)
+        advanceUntilIdle()
+        assertEquals(
+            110,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+        )
+        verify(mockMetronomeEngine).setBpm(110)
+        job.cancel()
+    }
+
+    @Test
+    fun `should decrease bpm to zero when decreaseBpm is called with a value greater than the actual bpm `() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 120,
+            beats = mutableListOf()
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        viewModel.decreaseBpm(-150)
+        advanceUntilIdle()
+        assertEquals(
+            0,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+        )
+        verify(mockMetronomeEngine).setBpm(0)
+        job.cancel()
+    }
+
+    @Test
+    fun `should not decrease bpm when decreaseBpm is called with a positive value `() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 120,
+            beats = mutableListOf()
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        viewModel.decreaseBpm(10)
+        advanceUntilIdle()
+        assertEquals(
+            120,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+        )
+        verify(mockMetronomeEngine, never()).setBpm(120)
+        job.cancel()
+    }
 }
