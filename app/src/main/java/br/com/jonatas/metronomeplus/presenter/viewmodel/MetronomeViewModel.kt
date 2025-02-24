@@ -104,11 +104,20 @@ class MetronomeViewModel(
         }
     }
 
+    fun decreaseBpm(value: Int) {
+        if (value < 0) {
+            setBpm(value)
+        }
+    }
+
     private fun setBpm(value: Int) {
         viewModelScope.launch {
             val currentState = _uiState.value
             if (currentState is MetronomeState.Ready) {
-                val newValue = currentState.measure.bpm.plus(value)
+                var newValue = currentState.measure.bpm.plus(value)
+                if (newValue < 0) {
+                    newValue = 0
+                }
                 _uiState.value =
                     currentState.copy(measure = currentState.measure.copy(bpm = newValue))
                 metronomeEngine.setBpm(newValue)

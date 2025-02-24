@@ -87,6 +87,8 @@ class MetronomeFragment : Fragment() {
         binding.btnPlayPause.setOnClickListener { viewModel.togglePlayPause() }
         binding.btnMoreOne.setOnClickListener { viewModel.increaseBpm(1) }
         binding.btnMoreThen.setOnClickListener { viewModel.increaseBpm(10) }
+        binding.btnMinusOne.setOnClickListener { viewModel.decreaseBpm(-1) }
+        binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(-10) }
     }
 
     override fun onDestroyView() {
