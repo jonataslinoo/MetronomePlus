@@ -11,7 +11,7 @@ fun MeasureUiModel.toDomain(): Measure = Measure(
     beats = beats.toDomain()
 )
 
-fun List<BeatUiModel>.toDomain(): MutableList<Beat> = map { it.toDomain() }.toMutableList()
+fun List<BeatUiModel>.toDomain(): List<Beat> = map { it.toDomain() }.toList()
 
 fun Measure.toUiModel() = MeasureUiModel(
     isPlaying = false,
@@ -19,4 +19,4 @@ fun Measure.toUiModel() = MeasureUiModel(
     beats = beats.toUiModel()
 )
 
-fun List<Beat>.toUiModel(): MutableList<BeatUiModel> = map { it.toUiModel() }.toMutableList()
+fun List<Beat>.toUiModel(): List<BeatUiModel> = map { it.toUiModel() }.toList()

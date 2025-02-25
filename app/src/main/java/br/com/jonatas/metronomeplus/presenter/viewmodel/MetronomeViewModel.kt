@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
-import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
+import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
@@ -26,7 +26,7 @@ class MetronomeViewModel(
     private val metronomeEngine: MetronomeEngine,
     private val assetProvider: AssetProvider,
     private val audioSettingsProvider: AudioSettingsProvider,
-    private val measureRepository: MeasureRepository,
+    private val getMeasureUseCase: GetMeasureUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -57,7 +57,7 @@ class MetronomeViewModel(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val measure = measureRepository.getMeasure().toUiModel()
+                val measure = getMeasureUseCase().toUiModel()
                 _uiState.value = MetronomeState.Ready(measure)
             } catch (ex: Exception) {
                 _uiState.value = MetronomeState.Error("Error: ${ex.message}")
@@ -166,7 +166,7 @@ class MetronomeViewModelFactory(
     private val metronomeEngine: MetronomeEngine,
     private val assetProvider: AssetProvider,
     private val audioSettingsProvider: AudioSettingsProvider,
-    private val measureRepository: MeasureRepository,
+    private val getMeasureUseCase: GetMeasureUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -177,7 +177,7 @@ class MetronomeViewModelFactory(
                 metronomeEngine,
                 assetProvider,
                 audioSettingsProvider,
-                measureRepository,
+                getMeasureUseCase,
                 dispatcher
             ) as T
         }
