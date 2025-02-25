@@ -141,6 +141,21 @@ class MetronomeViewModel(
         }
     }
 
+    fun removeBeat() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState is MetronomeState.Ready) {
+                val newBeats = currentState.measure.beats.toMutableList()
+                if (newBeats.size > 1) {
+                    newBeats.removeAt(newBeats.lastIndex)
+                    _uiState.value =
+                        currentState.copy(measure = currentState.measure.copy(beats = newBeats))
+                    metronomeEngine.setBeats(newBeats.map { it.toDomain() }.toTypedArray())
+                }
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         metronomeEngine.cleanup()
