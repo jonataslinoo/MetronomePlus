@@ -9,6 +9,8 @@ import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
+import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
+import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -121,6 +123,20 @@ class MetronomeViewModel(
                 _uiState.value =
                     currentState.copy(measure = currentState.measure.copy(bpm = newValue))
                 metronomeEngine.setBpm(newValue)
+            }
+        }
+    }
+
+    fun addBeat() {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState is MetronomeState.Ready) {
+                if (currentState.measure.beats.size < 16) {
+                    val newBeats = currentState.measure.beats + BeatUiModel(BeatStateUiModel.Normal)
+                    _uiState.value =
+                        currentState.copy(measure = currentState.measure.copy(beats = newBeats.toMutableList()))
+                    metronomeEngine.setBeats(newBeats.map { it.toDomain() }.toTypedArray())
+                }
             }
         }
     }

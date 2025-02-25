@@ -59,6 +59,8 @@ class MetronomeFragment : Fragment() {
                                     if (uiState.measure.isPlaying) "Pause" else "Play"
 
                                 tvBpm.text = uiState.measure.bpm.toString()
+
+                                beatCounter.text = uiState.measure.beats.size.toString()
                             }
                         }
 
@@ -89,6 +91,7 @@ class MetronomeFragment : Fragment() {
         binding.btnMoreThen.setOnClickListener { viewModel.increaseBpm(10) }
         binding.btnMinusOne.setOnClickListener { viewModel.decreaseBpm(-1) }
         binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(-10) }
+        binding.btnMoreOneBeat.setOnClickListener { viewModel.addBeat() }
     }
 
     override fun onDestroyView() {
