@@ -10,4 +10,4 @@ fun MeasureDto.toDomain() = Measure(
     beats = beats.toDomain()
 )
 
-fun List<BeatDto>.toDomain(): MutableList<Beat> = map { it.toDomain() }.toMutableList()
+fun List<BeatDto>.toDomain(): List<Beat> = map { it.toDomain() }.toList()
