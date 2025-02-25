@@ -92,6 +92,7 @@ class MetronomeFragment : Fragment() {
         binding.btnMinusOne.setOnClickListener { viewModel.decreaseBpm(-1) }
         binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(-10) }
         binding.btnMoreOneBeat.setOnClickListener { viewModel.addBeat() }
+        binding.btnMinusOneBeat.setOnClickListener { viewModel.removeBeat() }
     }
 
     override fun onDestroyView() {
