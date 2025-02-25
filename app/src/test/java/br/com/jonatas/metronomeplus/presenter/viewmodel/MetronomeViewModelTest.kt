@@ -10,6 +10,7 @@ import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
 import br.com.jonatas.metronomeplus.domain.source.MeasureDataSource
+import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
@@ -292,27 +293,28 @@ class MetronomeViewModelTest {
     }
 
     @Test
-    fun `should decrease bpm to zero when decreaseBpm is called with a value greater than the actual bpm `() = runTest {
-        val measureDto = MeasureDto(
-            bpm = 120,
-            beats = mutableListOf()
-        )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+    fun `should decrease bpm to zero when decreaseBpm is called with a value greater than the actual bpm `() =
+        runTest {
+            val measureDto = MeasureDto(
+                bpm = 120,
+                beats = mutableListOf()
+            )
+            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
 
-        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.toList(states)
+            val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            viewModel.decreaseBpm(-150)
+            advanceUntilIdle()
+            assertEquals(
+                0,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+            )
+            verify(mockMetronomeEngine).setBpm(0)
+            job.cancel()
         }
-
-        viewModel.decreaseBpm(-150)
-        advanceUntilIdle()
-        assertEquals(
-            0,
-            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
-        )
-        verify(mockMetronomeEngine).setBpm(0)
-        job.cancel()
-    }
 
     @Test
     fun `should not decrease bpm when decreaseBpm is called with a positive value `() = runTest {
@@ -334,6 +336,107 @@ class MetronomeViewModelTest {
             (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.bpm
         )
         verify(mockMetronomeEngine, never()).setBpm(120)
+        job.cancel()
+    }
+
+    @Test
+    fun `should add a normal beat when addBeat is called in the viewModel`() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 0,
+            beats = mutableListOf(
+                BeatDto(BeatStateDto.Accent),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+            )
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        val expectedBeats = mutableListOf(
+            BeatUiModel(BeatStateUiModel.Accent),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+        )
+        viewModel.addBeat()
+        advanceUntilIdle()
+        assertEquals(
+            expectedBeats,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats
+        )
+        assertEquals(
+            5,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
+        )
+        verify(mockMetronomeEngine).setBeats(expectedBeats.map { it.toDomain() }.toTypedArray())
+        job.cancel()
+    }
+
+    @Test
+    fun `should not add more than sixteen beats when addBeat is called in the viewModel`() = runTest {
+        val measureDto = MeasureDto(
+            bpm = 0,
+            beats = mutableListOf(
+                BeatDto(BeatStateDto.Accent),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+                BeatDto(BeatStateDto.Normal),
+            )
+        )
+        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        val expectedBeats = mutableListOf(
+            BeatUiModel(BeatStateUiModel.Accent),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Normal),
+        )
+        viewModel.addBeat()
+        advanceUntilIdle()
+        assertEquals(
+            expectedBeats,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats
+        )
+        assertEquals(
+            16,
+            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
+        )
+        verify(mockMetronomeEngine, never()).setBeats(expectedBeats.map { it.toDomain() }.toTypedArray())
         job.cancel()
     }
 }
