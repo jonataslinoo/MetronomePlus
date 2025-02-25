@@ -379,64 +379,138 @@ class MetronomeViewModelTest {
     }
 
     @Test
-    fun `should not add more than sixteen beats when addBeat is called in the viewModel`() = runTest {
-        val measureDto = MeasureDto(
-            bpm = 0,
-            beats = mutableListOf(
-                BeatDto(BeatStateDto.Accent),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
+    fun `should not add more than sixteen beats when addBeat is called in the viewModel`() =
+        runTest {
+            val measureDto = MeasureDto(
+                bpm = 0,
+                beats = mutableListOf(
+                    BeatDto(BeatStateDto.Accent),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                )
             )
-        )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
 
-        val states = mutableListOf<MetronomeViewModel.MetronomeState>()
-        val job = launch(UnconfinedTestDispatcher(testScheduler)) {
-            viewModel.uiState.toList(states)
+            val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            val expectedBeats = mutableListOf(
+                BeatUiModel(BeatStateUiModel.Accent),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+            )
+            viewModel.addBeat()
+            advanceUntilIdle()
+            assertEquals(
+                expectedBeats,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats
+            )
+            assertEquals(
+                16,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
+            )
+            verify(mockMetronomeEngine, never()).setBeats(expectedBeats.map { it.toDomain() }
+                .toTypedArray())
+            job.cancel()
         }
 
-        val expectedBeats = mutableListOf(
-            BeatUiModel(BeatStateUiModel.Accent),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-            BeatUiModel(BeatStateUiModel.Normal),
-        )
-        viewModel.addBeat()
-        advanceUntilIdle()
-        assertEquals(
-            expectedBeats,
-            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats
-        )
-        assertEquals(
-            16,
-            (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
-        )
-        verify(mockMetronomeEngine, never()).setBeats(expectedBeats.map { it.toDomain() }.toTypedArray())
-        job.cancel()
-    }
+    @Test
+    fun `should remove last index from the beat list when removeBeat is called in the viewModel`() =
+        runTest {
+            val measureDto = MeasureDto(
+                bpm = 0,
+                beats = mutableListOf(
+                    BeatDto(BeatStateDto.Accent),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                    BeatDto(BeatStateDto.Normal),
+                )
+            )
+            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+            val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            val expectedBeats = mutableListOf(
+                BeatUiModel(BeatStateUiModel.Accent),
+                BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal),
+            )
+
+            viewModel.removeBeat()
+            advanceUntilIdle()
+            assertEquals(
+                expectedBeats,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats
+            )
+            assertEquals(
+                3,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
+            )
+            verify(mockMetronomeEngine).setBeats(expectedBeats.map { it.toDomain() }.toTypedArray())
+            job.cancel()
+        }
+
+    @Test
+    fun `should not remove the beat if there is only one beat when removeBeat is called int the viewModel `() =
+        runTest {
+            val measureDto = MeasureDto(
+                bpm = 0,
+                beats = mutableListOf(
+                    BeatDto(BeatStateDto.Accent)
+                )
+            )
+            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+
+            val states = mutableListOf<MetronomeViewModel.MetronomeState>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            val expectedBeats = mutableListOf(BeatUiModel(BeatStateUiModel.Accent))
+
+            viewModel.removeBeat()
+            advanceUntilIdle()
+            assertEquals(
+                expectedBeats,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats
+            )
+            assertEquals(
+                1,
+                (states.last() as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
+            )
+            verify(mockMetronomeEngine, never()).setBeats(expectedBeats.map { it.toDomain() }
+                .toTypedArray())
+            job.cancel()
+        }
 }
