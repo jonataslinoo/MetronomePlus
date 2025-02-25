@@ -1,15 +1,13 @@
 package br.com.jonatas.metronomeplus.presenter.viewmodel
 
 import android.content.res.AssetManager
-import br.com.jonatas.metronomeplus.data.model.BeatDto
-import br.com.jonatas.metronomeplus.data.model.BeatStateDto
-import br.com.jonatas.metronomeplus.data.model.MeasureDto
-import br.com.jonatas.metronomeplus.data.repository.MeasureRepositoryImpl
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
+import br.com.jonatas.metronomeplus.domain.model.Beat
+import br.com.jonatas.metronomeplus.domain.model.BeatState
+import br.com.jonatas.metronomeplus.domain.model.Measure
 import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
-import br.com.jonatas.metronomeplus.domain.repository.MeasureRepository
-import br.com.jonatas.metronomeplus.domain.source.MeasureDataSource
+import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
@@ -48,16 +46,14 @@ class MetronomeViewModelTest {
     private lateinit var mockAudioSettingProvider: AudioSettingsProvider
 
     @Mock
-    private lateinit var mockDataSource: MeasureDataSource
-    private val measureRepository: MeasureRepository by lazy {
-        MeasureRepositoryImpl(mockDataSource)
-    }
+    private lateinit var mockGetMeasureUseCase: GetMeasureUseCase
+
     private val viewModel by lazy {
         MetronomeViewModel(
             mockMetronomeEngine,
             mockAssetProvider,
             mockAudioSettingProvider,
-            measureRepository,
+            mockGetMeasureUseCase,
             testDispatcher
         )
     }
@@ -82,16 +78,16 @@ class MetronomeViewModelTest {
     @Test
     fun `should start metronome in Loading state when MetronomeViewModel is initialized`() =
         runTest {
-            val measureDto = MeasureDto(
+            val measure = Measure(
                 bpm = 120,
                 beats = mutableListOf(
-                    BeatDto(BeatStateDto.Accent),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
+                    Beat(BeatState.Accent),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
                 )
             )
-            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -107,17 +103,17 @@ class MetronomeViewModelTest {
         }
 
     @Test
-    fun `shuould transition to Ready state when data loading is successful`() = runTest {
-        val measureDto = MeasureDto(
+    fun `should transition to Ready state when data loading is successful`() = runTest {
+        val measure = Measure(
             bpm = 120,
             beats = mutableListOf(
-                BeatDto(BeatStateDto.Accent),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal)
+                Beat(BeatState.Accent),
+                Beat(BeatState.Normal),
+                Beat(BeatState.Normal),
+                Beat(BeatState.Normal),
             )
         )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+        `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -151,7 +147,7 @@ class MetronomeViewModelTest {
 
     @Test
     fun `should transition to Error state when data loading fails`() = runTest {
-        `when`(mockDataSource.getMeasure()).thenThrow(RuntimeException("Data Loading failure"))
+        `when`(mockGetMeasureUseCase()).thenThrow(RuntimeException("Data Loading failure"))
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -184,16 +180,16 @@ class MetronomeViewModelTest {
     @Test
     fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
         runTest {
-            val measureDto = MeasureDto(
+            val measure = Measure(
                 bpm = 120,
                 beats = mutableListOf(
-                    BeatDto(BeatStateDto.Accent),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
+                    Beat(BeatState.Accent),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
                 )
             )
-            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -225,11 +221,11 @@ class MetronomeViewModelTest {
 
     @Test
     fun `should increase bpm when increaseBpm is called with a positive value`() = runTest {
-        val measureDto = MeasureDto(
+        val measure = Measure(
             bpm = 120,
             beats = mutableListOf()
         )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+        `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -248,11 +244,11 @@ class MetronomeViewModelTest {
 
     @Test
     fun `should not increase bpm when increaseBpm is called with a negative value`() = runTest {
-        val measureDto = MeasureDto(
+        val measure = Measure(
             bpm = 120,
             beats = mutableListOf()
         )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+        `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -271,11 +267,11 @@ class MetronomeViewModelTest {
 
     @Test
     fun `should decrease bpm when decreaseBpm is called with a negative value`() = runTest {
-        val measureDto = MeasureDto(
+        val measure = Measure(
             bpm = 120,
             beats = mutableListOf()
         )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+        `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -295,11 +291,11 @@ class MetronomeViewModelTest {
     @Test
     fun `should decrease bpm to zero when decreaseBpm is called with a value greater than the actual bpm `() =
         runTest {
-            val measureDto = MeasureDto(
+            val measure = Measure(
                 bpm = 120,
                 beats = mutableListOf()
             )
-            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -318,11 +314,11 @@ class MetronomeViewModelTest {
 
     @Test
     fun `should not decrease bpm when decreaseBpm is called with a positive value `() = runTest {
-        val measureDto = MeasureDto(
+        val measure = Measure(
             bpm = 120,
             beats = mutableListOf()
         )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+        `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -341,16 +337,16 @@ class MetronomeViewModelTest {
 
     @Test
     fun `should add a normal beat when addBeat is called in the viewModel`() = runTest {
-        val measureDto = MeasureDto(
-            bpm = 0,
+        val measure = Measure(
+            bpm = 120,
             beats = mutableListOf(
-                BeatDto(BeatStateDto.Accent),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
-                BeatDto(BeatStateDto.Normal),
+                Beat(BeatState.Accent),
+                Beat(BeatState.Normal),
+                Beat(BeatState.Normal),
+                Beat(BeatState.Normal),
             )
         )
-        `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+        `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
         val states = mutableListOf<MetronomeViewModel.MetronomeState>()
         val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -381,28 +377,28 @@ class MetronomeViewModelTest {
     @Test
     fun `should not add more than sixteen beats when addBeat is called in the viewModel`() =
         runTest {
-            val measureDto = MeasureDto(
+            val measure = Measure(
                 bpm = 0,
                 beats = mutableListOf(
-                    BeatDto(BeatStateDto.Accent),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
+                    Beat(BeatState.Accent),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
                 )
             )
-            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -445,16 +441,16 @@ class MetronomeViewModelTest {
     @Test
     fun `should remove last index from the beat list when removeBeat is called in the viewModel`() =
         runTest {
-            val measureDto = MeasureDto(
-                bpm = 0,
+            val measure = Measure(
+                bpm = 120,
                 beats = mutableListOf(
-                    BeatDto(BeatStateDto.Accent),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
-                    BeatDto(BeatStateDto.Normal),
+                    Beat(BeatState.Accent),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
+                    Beat(BeatState.Normal),
                 )
             )
-            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
@@ -484,13 +480,13 @@ class MetronomeViewModelTest {
     @Test
     fun `should not remove the beat if there is only one beat when removeBeat is called int the viewModel `() =
         runTest {
-            val measureDto = MeasureDto(
-                bpm = 0,
+            val measure = Measure(
+                bpm = 120,
                 beats = mutableListOf(
-                    BeatDto(BeatStateDto.Accent)
+                    Beat(BeatState.Accent)
                 )
             )
-            `when`(mockDataSource.getMeasure()).thenReturn(measureDto)
+            `when`(mockGetMeasureUseCase()).thenReturn(measure)
 
             val states = mutableListOf<MetronomeViewModel.MetronomeState>()
             val job = launch(UnconfinedTestDispatcher(testScheduler)) {
