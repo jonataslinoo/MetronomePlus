@@ -8,8 +8,9 @@ import br.com.jonatas.metronomeplus.domain.model.Measure
 import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
-import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
+import br.com.jonatas.metronomeplus.presenter.mapper.toDomainArray
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
+import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -324,7 +325,7 @@ class MetronomeViewModelTest {
             )
 
             verify(mockMetronomeEngine).setBeats(
-                expectedMeasureUiModel.beats.toDomain().toTypedArray()
+                expectedMeasureUiModel.beats.toDomainArray()
             )
         }
 
@@ -384,7 +385,7 @@ class MetronomeViewModelTest {
                     Beat(BeatState.Normal),
                 )
             )
-            val expectedBeats = initialMeasure.beats.toUiModel().toMutableList()
+            val expectedBeats = initialMeasure.beats.toUiModelList().toMutableList()
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
 
             viewModel.removeBeat()
@@ -401,7 +402,7 @@ class MetronomeViewModelTest {
                 3,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
             )
-            verify(mockMetronomeEngine).setBeats(expectedBeats.toDomain().toTypedArray())
+            verify(mockMetronomeEngine).setBeats(expectedBeats.toDomainArray())
         }
 
     @Test
@@ -410,7 +411,7 @@ class MetronomeViewModelTest {
             val initialMeasure = Measure(
                 bpm = 120, beats = listOf(Beat(BeatState.Accent))
             )
-            val expectedBeats = initialMeasure.beats.toUiModel()
+            val expectedBeats = initialMeasure.beats.toUiModelList()
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
 
             viewModel.removeBeat()
@@ -426,6 +427,6 @@ class MetronomeViewModelTest {
                 1,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
             )
-            verify(mockMetronomeEngine, never()).setBeats(expectedBeats.toDomain().toTypedArray())
+            verify(mockMetronomeEngine, never()).setBeats(expectedBeats.toDomainArray())
         }
 }

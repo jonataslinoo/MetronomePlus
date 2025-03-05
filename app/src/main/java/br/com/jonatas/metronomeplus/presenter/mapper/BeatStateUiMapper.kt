@@ -9,3 +9,10 @@ fun BeatStateUiModel.toDomain(): BeatState = when (this) {
     BeatStateUiModel.Accent -> BeatState.Accent
     BeatStateUiModel.Medium -> BeatState.Medium
 }
+
+fun BeatState.toUiModel() = when (this) {
+    BeatState.Normal -> BeatStateUiModel.Normal
+    BeatState.Silence -> BeatStateUiModel.Silence
+    BeatState.Accent -> BeatStateUiModel.Accent
+    BeatState.Medium -> BeatStateUiModel.Medium
+}
