@@ -8,6 +8,7 @@ import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
+import br.com.jonatas.metronomeplus.presenter.mapper.toDomainArray
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
@@ -75,7 +76,7 @@ class MetronomeViewModel(
     private fun updateNativeBeats() {
         val currentState = _uiState.value
         if (currentState is MetronomeState.Ready) {
-            metronomeEngine.setBeats(currentState.measure.beats.toDomain().toTypedArray())
+            metronomeEngine.setBeats(currentState.measure.beats.toDomainArray())
         }
     }
 
