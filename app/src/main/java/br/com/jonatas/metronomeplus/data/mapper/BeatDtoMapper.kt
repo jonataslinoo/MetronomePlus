@@ -3,8 +3,6 @@ package br.com.jonatas.metronomeplus.data.mapper
 import br.com.jonatas.metronomeplus.data.model.BeatDto
 import br.com.jonatas.metronomeplus.domain.model.Beat
 
-fun BeatDto.toDomain() =
-    Beat(state = this.stateDto.toDomain())
+fun Beat.toDto(): BeatDto = BeatDto(stateDto = state.toDto())
 
-fun Beat.toDto() =
-    BeatDto(stateDto = state.toDto())
+fun BeatDto.toDomain(): Beat = Beat(state = stateDto.toDomain())

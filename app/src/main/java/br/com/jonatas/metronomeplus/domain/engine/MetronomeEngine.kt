@@ -1,14 +1,13 @@
 package br.com.jonatas.metronomeplus.domain.engine
 
-import android.content.res.AssetManager
-import br.com.jonatas.metronomeplus.domain.model.Beat
+import br.com.jonatas.metronomeplus.data.model.BeatDto
+import br.com.jonatas.metronomeplus.data.model.MeasureDto
 
 interface MetronomeEngine {
-    fun initialize(assetManager: AssetManager)
+    fun initialize(measureDto: MeasureDto)
     fun setBpm(bpm: Int)
-    fun setBeats(beats: Array<Beat>)
+    fun setBeats(beats: Array<BeatDto>)
     fun startPlaying()
     fun stopPlaying()
-    fun setDefaultStreamValues(sampleRate: Int, framesPerBurst: Int)
     fun cleanup()
 }

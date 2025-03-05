@@ -76,12 +76,15 @@ class MetronomeFragment : Fragment() {
     }
 
     private fun setupViewModel() {
+        val assetProvider = AssetProviderImpl(requireContext().applicationContext)
+        val audioSettingsProvider = AudioSettingProviderImpl(requireContext().applicationContext)
+        val metronomeEngine = MetronomeEngineImpl(assetProvider, audioSettingsProvider)
         val measureRepositoryImpl = MeasureRepositoryImpl(MeasureDataSourceImpl())
+        val getMeasureUseCase = GetMeasureUseCaseImpl(measureRepositoryImpl)
+
         val viewModelFactory = MetronomeViewModelFactory(
-            metronomeEngine = MetronomeEngineImpl(),
-            assetProvider = AssetProviderImpl(requireContext().applicationContext),
-            audioSettingsProvider = AudioSettingProviderImpl(requireContext().applicationContext),
-            getMeasureUseCase = GetMeasureUseCaseImpl(measureRepositoryImpl)
+            metronomeEngine = metronomeEngine,
+            getMeasureUseCase = getMeasureUseCase
         )
 
         viewModel = ViewModelProvider(this, viewModelFactory)[MetronomeViewModel::class.java]

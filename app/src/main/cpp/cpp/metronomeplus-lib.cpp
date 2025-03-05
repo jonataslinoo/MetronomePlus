@@ -83,9 +83,8 @@ Java_br_com_jonatas_metronomeplus_data_engine_MetronomeEngineImpl_native_1SetBea
         jclass beatClass = env->GetObjectClass(jBeat);
         if (beatClass == nullptr) continue;
 
-        // Obtenha o campo `state`
-        jfieldID stateField = env->GetFieldID(beatClass, "state",
-                                              "Lbr/com/jonatas/metronomeplus/domain/model/BeatState;");
+        jfieldID stateField = env->GetFieldID(beatClass, "stateDto",
+                                              "Lbr/com/jonatas/metronomeplus/data/model/BeatStateDto;");
         jobject jState = env->GetObjectField(jBeat, stateField);
         if (jState == nullptr) continue;
 
