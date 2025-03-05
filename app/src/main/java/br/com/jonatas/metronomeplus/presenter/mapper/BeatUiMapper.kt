@@ -5,3 +5,6 @@ import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 
 fun BeatUiModel.toDomain(): Beat =
     Beat(state = stateUiModel.toDomain())
+
+fun Beat.toUiModel() =
+    BeatUiModel(stateUiModel = this.state.toUiModel())
