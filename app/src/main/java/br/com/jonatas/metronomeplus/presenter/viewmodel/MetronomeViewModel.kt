@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.data.mapper.toDto
 import br.com.jonatas.metronomeplus.data.mapper.toDtoArray
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
+import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
@@ -27,6 +28,7 @@ class MetronomeViewModel(
     private val metronomeEngine: MetronomeEngine,
     private val getMeasureUseCase: GetMeasureUseCase,
     private val increaseBpmUseCase: IncreaseBpmUseCase,
+    private val decreaseBpmUseCase: DecreaseBpmUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -93,23 +95,15 @@ class MetronomeViewModel(
     }
 
     fun decreaseBpm(value: Int) {
-        if (value < 0) {
-            setBpm(value)
-        }
-    }
-
-    private fun setBpm(value: Int) {
         viewModelScope.launch {
             val currentState = _uiState.value
             if (currentState is MetronomeState.Ready) {
-                var newValue = currentState.measure.bpm.plus(value)
-                if (newValue < 0) {
-                    newValue = 0
-                }
-                _uiState.value =
-                    currentState.copy(measure = currentState.measure.copy(bpm = newValue))
+                val newBpm = decreaseBpmUseCase(currentState.measure.bpm, value)
 
-                metronomeEngine.setBpm(newValue)
+                metronomeEngine.setBpm(newBpm)
+
+                val newMeasure = currentState.measure.copy(bpm = newBpm)
+                _uiState.value = currentState.copy(measure = newMeasure)
             }
         }
     }
@@ -157,6 +151,7 @@ class MetronomeViewModelFactory(
     private val metronomeEngine: MetronomeEngine,
     private val getMeasureUseCase: GetMeasureUseCase,
     private val increaseBpmUseCase: IncreaseBpmUseCase,
+    private val decreaseBpmUseCase: DecreaseBpmUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -167,6 +162,7 @@ class MetronomeViewModelFactory(
                 metronomeEngine = metronomeEngine,
                 getMeasureUseCase = getMeasureUseCase,
                 increaseBpmUseCase = increaseBpmUseCase,
+                decreaseBpmUseCase = decreaseBpmUseCase,
                 dispatcher = dispatcher
             ) as T
         }
