@@ -3,12 +3,11 @@ package br.com.jonatas.metronomeplus.presenter.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import br.com.jonatas.metronomeplus.data.mapper.toDto
+import br.com.jonatas.metronomeplus.data.mapper.toDtoArray
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
-import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
-import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
-import br.com.jonatas.metronomeplus.presenter.mapper.toDomainArray
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
@@ -25,8 +24,6 @@ import kotlinx.coroutines.withContext
 
 class MetronomeViewModel(
     private val metronomeEngine: MetronomeEngine,
-    private val assetProvider: AssetProvider,
-    private val audioSettingsProvider: AudioSettingsProvider,
     private val getMeasureUseCase: GetMeasureUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
@@ -42,41 +39,19 @@ class MetronomeViewModel(
     }
 
     init {
-        metronomeEngine.initialize(assetProvider.getAssets())
-
-        metronomeEngine.setDefaultStreamValues(
-            audioSettingsProvider.getSampleRate(),
-            audioSettingsProvider.getFramesPerBurst()
-        )
-
         loadData()
-
-        initNativeBpm()
-        updateNativeBeats()
     }
 
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val measure = getMeasureUseCase().toUiModel()
-                _uiState.value = MetronomeState.Ready(measure)
+                val measure = getMeasureUseCase()
+                metronomeEngine.initialize(measure.toDto())
+
+                _uiState.value = MetronomeState.Ready(measure.toUiModel())
             } catch (ex: Exception) {
                 _uiState.value = MetronomeState.Error("Error: ${ex.message}")
             }
-        }
-    }
-
-    private fun initNativeBpm() {
-        val currentState = _uiState.value
-        if (currentState is MetronomeState.Ready) {
-            metronomeEngine.setBpm(currentState.measure.bpm)
-        }
-    }
-
-    private fun updateNativeBeats() {
-        val currentState = _uiState.value
-        if (currentState is MetronomeState.Ready) {
-            metronomeEngine.setBeats(currentState.measure.beats.toDomainArray())
         }
     }
 
@@ -123,6 +98,7 @@ class MetronomeViewModel(
                 }
                 _uiState.value =
                     currentState.copy(measure = currentState.measure.copy(bpm = newValue))
+
                 metronomeEngine.setBpm(newValue)
             }
         }
@@ -136,7 +112,9 @@ class MetronomeViewModel(
                     val newBeats = currentState.measure.beats + BeatUiModel(BeatStateUiModel.Normal)
                     _uiState.value =
                         currentState.copy(measure = currentState.measure.copy(beats = newBeats.toMutableList()))
-                    metronomeEngine.setBeats(newBeats.map { it.toDomain() }.toTypedArray())
+
+                    val domainBeats = newBeats.map { it.toDomain() }
+                    metronomeEngine.setBeats(domainBeats.toDtoArray())
                 }
             }
         }
@@ -151,7 +129,9 @@ class MetronomeViewModel(
                     newBeats.removeAt(newBeats.lastIndex)
                     _uiState.value =
                         currentState.copy(measure = currentState.measure.copy(beats = newBeats))
-                    metronomeEngine.setBeats(newBeats.map { it.toDomain() }.toTypedArray())
+
+                    val domainBeats = newBeats.map { it.toDomain() }
+                    metronomeEngine.setBeats(domainBeats.toDtoArray())
                 }
             }
         }
@@ -165,8 +145,6 @@ class MetronomeViewModel(
 
 class MetronomeViewModelFactory(
     private val metronomeEngine: MetronomeEngine,
-    private val assetProvider: AssetProvider,
-    private val audioSettingsProvider: AudioSettingsProvider,
     private val getMeasureUseCase: GetMeasureUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
@@ -175,11 +153,9 @@ class MetronomeViewModelFactory(
         if (modelClass.isAssignableFrom(MetronomeViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return MetronomeViewModel(
-                metronomeEngine,
-                assetProvider,
-                audioSettingsProvider,
-                getMeasureUseCase,
-                dispatcher
+                metronomeEngine = metronomeEngine,
+                getMeasureUseCase = getMeasureUseCase,
+                dispatcher = dispatcher
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

@@ -5,20 +5,16 @@ import br.com.jonatas.metronomeplus.data.model.MeasureDto
 import br.com.jonatas.metronomeplus.domain.model.Beat
 import br.com.jonatas.metronomeplus.domain.model.Measure
 
-fun MeasureDto.toDomain() = Measure(
+/** Domain for Dto */
+fun Measure.toDto(): MeasureDto = MeasureDto(
     bpm = bpm,
-    beats = beats.toDomainList()
+    beats = beats.map { it.toDto() }.toList()
 )
 
-fun List<BeatDto>.toDomainList(): List<Beat> =
-    map { it.toDomain() }.toList()
+fun List<Beat>.toDtoArray(): Array<BeatDto> = map { it.toDto() }.toTypedArray()
 
-fun List<BeatDto>.toDomainArray(): Array<Beat> =
-    map { it.toDomain() }.toTypedArray()
-
-fun Measure.toDto() = MeasureDto(
+/** Dto for Domain */
+fun MeasureDto.toDomain(): Measure = Measure(
     bpm = bpm,
-    beats = beats.toDtoList()
+    beats = beats.map { it.toDomain() }.toList()
 )
-
-fun List<Beat>.toDtoList(): List<BeatDto> = map { it.toDto() }.toList()

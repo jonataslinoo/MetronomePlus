@@ -1,16 +1,16 @@
 package br.com.jonatas.metronomeplus.presenter.viewmodel
 
-import android.content.res.AssetManager
+import br.com.jonatas.metronomeplus.data.mapper.toDto
+import br.com.jonatas.metronomeplus.data.mapper.toDtoArray
+import br.com.jonatas.metronomeplus.data.model.BeatDto
+import br.com.jonatas.metronomeplus.data.model.MeasureDto
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.model.Beat
 import br.com.jonatas.metronomeplus.domain.model.BeatState
 import br.com.jonatas.metronomeplus.domain.model.Measure
-import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
-import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
-import br.com.jonatas.metronomeplus.presenter.mapper.toDomainArray
+import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
-import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -24,7 +24,6 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.anyInt
 import org.mockito.ArgumentMatchers.anyList
 import org.mockito.Mock
 import org.mockito.Mockito.mock
@@ -40,19 +39,11 @@ class MetronomeViewModelTest {
     private lateinit var mockMetronomeEngine: MetronomeEngine
 
     @Mock
-    private lateinit var mockAssetProvider: AssetProvider
-
-    @Mock
-    private lateinit var mockAudioSettingProvider: AudioSettingsProvider
-
-    @Mock
     private lateinit var mockGetMeasureUseCase: GetMeasureUseCase
 
     private val viewModel by lazy {
         MetronomeViewModel(
             mockMetronomeEngine,
-            mockAssetProvider,
-            mockAudioSettingProvider,
             mockGetMeasureUseCase,
             testDispatcher
         )
@@ -63,11 +54,6 @@ class MetronomeViewModelTest {
     fun setup() {
         MockitoAnnotations.openMocks(this)
         Dispatchers.setMain(testDispatcher)
-
-        val mockAssetManager = mock(AssetManager::class.java)
-        `when`(mockAssetProvider.getAssets()).thenReturn(mockAssetManager)
-        `when`(mockAudioSettingProvider.getSampleRate()).thenReturn(48000)
-        `when`(mockAudioSettingProvider.getFramesPerBurst()).thenReturn(256)
     }
 
     @After
@@ -78,17 +64,12 @@ class MetronomeViewModelTest {
     @Test
     fun `should start metronome in Loading state when MetronomeViewModel is initialized`() =
         runTest(testDispatcher) {
+            val mockMeasureDto = mock(MeasureDto::class.java)
             val expectedState = MetronomeViewModel.MetronomeState.Loading
             assertEquals(expectedState, viewModel.uiState.first())
 
-            verify(mockMetronomeEngine).initialize(mockAssetProvider.getAssets())
-            verify(mockMetronomeEngine).setDefaultStreamValues(
-                mockAudioSettingProvider.getSampleRate(),
-                mockAudioSettingProvider.getFramesPerBurst()
-            )
             verify(mockGetMeasureUseCase, never()).invoke()
-            verify(mockMetronomeEngine, never()).setBpm(anyInt())
-            verify(mockMetronomeEngine, never()).setBeats(anyList<Beat>().toTypedArray())
+            verify(mockMetronomeEngine, never()).initialize(mockMeasureDto)
         }
 
     @Test
@@ -116,16 +97,13 @@ class MetronomeViewModelTest {
             assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
             assertEquals(expectedState, stateReady)
 
-            verify(mockMetronomeEngine).initialize(mockAssetProvider.getAssets())
-            verify(mockMetronomeEngine).setDefaultStreamValues(
-                mockAudioSettingProvider.getSampleRate(),
-                mockAudioSettingProvider.getFramesPerBurst()
-            )
+            verify(mockMetronomeEngine).initialize(expectedMeasure.toDto())
             verify(mockGetMeasureUseCase).invoke()
         }
 
     @Test
     fun `should transition to Error state when data loading fails`() = runTest(testDispatcher) {
+        val mockMeasureDto = mock(MeasureDto::class.java)
         val expectedErrorMessage = "Data Loading failure"
         `when`(mockGetMeasureUseCase()).thenThrow(RuntimeException(expectedErrorMessage))
 
@@ -139,14 +117,8 @@ class MetronomeViewModelTest {
         assertTrue(stateError is MetronomeViewModel.MetronomeState.Error)
         assertEquals(expectedState, stateError)
 
-        verify(mockMetronomeEngine).initialize(mockAssetProvider.getAssets())
-        verify(mockMetronomeEngine).setDefaultStreamValues(
-            mockAudioSettingProvider.getSampleRate(),
-            mockAudioSettingProvider.getFramesPerBurst()
-        )
         verify(mockGetMeasureUseCase).invoke()
-        verify(mockMetronomeEngine, never()).setBpm(anyInt())
-        verify(mockMetronomeEngine, never()).setBeats(anyList<Beat>().toTypedArray())
+        verify(mockMetronomeEngine, never()).initialize(mockMeasureDto)
     }
 
     @Test
@@ -305,9 +277,8 @@ class MetronomeViewModelTest {
                     Beat(BeatState.Normal),
                 )
             )
-            val expectedMeasureUiModel =
+            val expectedMeasure =
                 initialMeasure.copy(beats = initialMeasure.beats + Beat(BeatState.Normal))
-                    .toUiModel()
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
 
             viewModel.addBeat()
@@ -316,7 +287,7 @@ class MetronomeViewModelTest {
             val stateReady = viewModel.uiState.first()
 
             assertEquals(
-                expectedMeasureUiModel.beats,
+                expectedMeasure.toUiModel().beats,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats
             )
             assertEquals(
@@ -325,7 +296,7 @@ class MetronomeViewModelTest {
             )
 
             verify(mockMetronomeEngine).setBeats(
-                expectedMeasureUiModel.beats.toDomainArray()
+                expectedMeasure.toDto().beats.toTypedArray()
             )
         }
 
@@ -353,7 +324,7 @@ class MetronomeViewModelTest {
                     Beat(BeatState.Normal),
                 )
             )
-            val expectedMeasureUiModel = initialMeasure.copy().toUiModel()
+            val expectedMeasure = initialMeasure.copy()
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
 
             viewModel.addBeat()
@@ -362,7 +333,7 @@ class MetronomeViewModelTest {
             val stateReady = viewModel.uiState.first()
 
             assertEquals(
-                expectedMeasureUiModel.beats,
+                expectedMeasure.toUiModel().beats,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats
             )
             assertEquals(
@@ -370,7 +341,7 @@ class MetronomeViewModelTest {
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
             )
 
-            verify(mockMetronomeEngine, never()).setBeats(anyList<Beat>().toTypedArray())
+            verify(mockMetronomeEngine, never()).setBeats(anyList<BeatDto>().toTypedArray())
         }
 
     @Test
@@ -385,7 +356,7 @@ class MetronomeViewModelTest {
                     Beat(BeatState.Normal),
                 )
             )
-            val expectedBeats = initialMeasure.beats.toUiModelList().toMutableList()
+            val expectedBeats = initialMeasure.toUiModel().beats.toMutableList()
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
 
             viewModel.removeBeat()
@@ -402,7 +373,9 @@ class MetronomeViewModelTest {
                 3,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
             )
-            verify(mockMetronomeEngine).setBeats(expectedBeats.toDomainArray())
+
+            val domainBeats = expectedBeats.map { it.toDomain() }
+            verify(mockMetronomeEngine).setBeats(domainBeats.toDtoArray())
         }
 
     @Test
@@ -411,7 +384,7 @@ class MetronomeViewModelTest {
             val initialMeasure = Measure(
                 bpm = 120, beats = listOf(Beat(BeatState.Accent))
             )
-            val expectedBeats = initialMeasure.beats.toUiModelList()
+            val expectedBeats = initialMeasure.toUiModel().beats
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
 
             viewModel.removeBeat()
@@ -427,6 +400,8 @@ class MetronomeViewModelTest {
                 1,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
             )
-            verify(mockMetronomeEngine, never()).setBeats(expectedBeats.toDomainArray())
+
+            val domainBeats = expectedBeats.map { it.toDomain() }
+            verify(mockMetronomeEngine, never()).setBeats(domainBeats.toDtoArray())
         }
 }

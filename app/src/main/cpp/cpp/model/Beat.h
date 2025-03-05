@@ -9,7 +9,7 @@ enum BeatState {
 };
 
 struct Beat {
-    BeatState state;
+    BeatState stateDto;
 };
 
 #endif //METRONOMEPLUS_BEAT_H
