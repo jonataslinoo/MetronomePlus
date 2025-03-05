@@ -16,6 +16,7 @@ import br.com.jonatas.metronomeplus.data.provider.AudioSettingProviderImpl
 import br.com.jonatas.metronomeplus.data.repository.MeasureRepositoryImpl
 import br.com.jonatas.metronomeplus.data.source.MeasureDataSourceImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentMetronomeBinding
+import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
@@ -83,10 +84,12 @@ class MetronomeFragment : Fragment() {
         val measureRepositoryImpl = MeasureRepositoryImpl(MeasureDataSourceImpl())
         val getMeasureUseCase = GetMeasureUseCaseImpl(measureRepositoryImpl)
         val increaseBpmUseCase = IncreaseBpmUseCaseImpl()
+        val decreaseBpmUseCase = DecreaseBpmUseCaseImpl()
 
         val viewModelFactory = MetronomeViewModelFactory(
             metronomeEngine = metronomeEngine,
             getMeasureUseCase = getMeasureUseCase,
+            decreaseBpmUseCase = decreaseBpmUseCase,
             increaseBpmUseCase = increaseBpmUseCase
         )
 
@@ -97,8 +100,8 @@ class MetronomeFragment : Fragment() {
         binding.btnPlayPause.setOnClickListener { viewModel.togglePlayPause() }
         binding.btnMoreOne.setOnClickListener { viewModel.increaseBpm(1) }
         binding.btnMoreThen.setOnClickListener { viewModel.increaseBpm(10) }
-        binding.btnMinusOne.setOnClickListener { viewModel.decreaseBpm(-1) }
-        binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(-10) }
+        binding.btnMinusOne.setOnClickListener { viewModel.decreaseBpm(1) }
+        binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(10) }
         binding.btnMoreOneBeat.setOnClickListener { viewModel.addBeat() }
         binding.btnMinusOneBeat.setOnClickListener { viewModel.removeBeat() }
     }
