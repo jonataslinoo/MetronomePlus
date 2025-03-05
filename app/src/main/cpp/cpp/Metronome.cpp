@@ -113,7 +113,7 @@ void Metronome::setBeats(const std::vector<Beat> &beats) {
 
     LOGI("Configured beats:");
     for (const auto &beat: beats) {
-        LOGI("Beat state: %d", beat.state);
+        LOGI("Beat stateDto: %d", beat.stateDto);
     }
 }
 
@@ -134,7 +134,7 @@ void Metronome::startPlaying() {
 
             notifyUiChangeBeat(mCurrentBeatIndex);
 
-            switch (currentBeat.state) {
+            switch (currentBeat.stateDto) {
                 case BeatState::Normal:
                     mNormalBeatPlayer->setPlaying(true);
                     LOGI("normal beat");
