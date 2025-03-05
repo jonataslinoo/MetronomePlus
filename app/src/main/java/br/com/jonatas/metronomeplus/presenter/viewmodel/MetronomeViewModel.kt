@@ -7,6 +7,7 @@ import br.com.jonatas.metronomeplus.data.mapper.toDto
 import br.com.jonatas.metronomeplus.data.mapper.toDtoArray
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
@@ -25,6 +26,7 @@ import kotlinx.coroutines.withContext
 class MetronomeViewModel(
     private val metronomeEngine: MetronomeEngine,
     private val getMeasureUseCase: GetMeasureUseCase,
+    private val increaseBpmUseCase: IncreaseBpmUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -77,8 +79,16 @@ class MetronomeViewModel(
     }
 
     fun increaseBpm(value: Int) {
-        if (value > 0) {
-            setBpm(value)
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState is MetronomeState.Ready) {
+                val newBpm = increaseBpmUseCase(currentState.measure.bpm, value)
+
+                metronomeEngine.setBpm(newBpm)
+
+                val newMeasure = currentState.measure.copy(bpm = newBpm)
+                _uiState.value = currentState.copy(measure = newMeasure)
+            }
         }
     }
 
@@ -146,6 +156,7 @@ class MetronomeViewModel(
 class MetronomeViewModelFactory(
     private val metronomeEngine: MetronomeEngine,
     private val getMeasureUseCase: GetMeasureUseCase,
+    private val increaseBpmUseCase: IncreaseBpmUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -155,6 +166,7 @@ class MetronomeViewModelFactory(
             return MetronomeViewModel(
                 metronomeEngine = metronomeEngine,
                 getMeasureUseCase = getMeasureUseCase,
+                increaseBpmUseCase = increaseBpmUseCase,
                 dispatcher = dispatcher
             ) as T
         }

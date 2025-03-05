@@ -9,6 +9,7 @@ import br.com.jonatas.metronomeplus.domain.model.Beat
 import br.com.jonatas.metronomeplus.domain.model.BeatState
 import br.com.jonatas.metronomeplus.domain.model.Measure
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import kotlinx.coroutines.Dispatchers
@@ -41,10 +42,14 @@ class MetronomeViewModelTest {
     @Mock
     private lateinit var mockGetMeasureUseCase: GetMeasureUseCase
 
+    @Mock
+    private lateinit var mockIncreaseBpmUseCase: IncreaseBpmUseCase
+
     private val viewModel by lazy {
         MetronomeViewModel(
             mockMetronomeEngine,
             mockGetMeasureUseCase,
+            mockIncreaseBpmUseCase,
             testDispatcher
         )
     }
@@ -161,45 +166,28 @@ class MetronomeViewModelTest {
         }
 
     @Test
-    fun `should increase bpm when increaseBpm is called with a positive value`() =
+    fun `should call increaseBpmUseCase when increaseBpm is called with a value`() =
         runTest(testDispatcher) {
             val initialBpm = 120
             val expectedBpm = 130
             val increment = 10
+
             val initialMeasure = Measure(bpm = initialBpm, beats = listOf())
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
+            `when`(mockIncreaseBpmUseCase(initialBpm, increment)).thenReturn(expectedBpm)
 
             viewModel.increaseBpm(increment)
             advanceUntilIdle()
 
             val stateReady = viewModel.uiState.first()
+            assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
             assertEquals(
                 expectedBpm,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.bpm
             )
 
+            verify(mockIncreaseBpmUseCase).invoke(initialBpm, increment)
             verify(mockMetronomeEngine).setBpm(expectedBpm)
-        }
-
-    @Test
-    fun `should not increase bpm when increaseBpm is called with a negative value`() =
-        runTest(testDispatcher) {
-            val initialBpm = 120
-            val expectedBpm = 120
-            val increment = -10
-            val initialMeasure = Measure(bpm = initialBpm, beats = listOf())
-            `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
-
-            viewModel.increaseBpm(increment)
-            advanceUntilIdle()
-
-            val stateReady = viewModel.uiState.first()
-            assertEquals(
-                expectedBpm,
-                (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.bpm
-            )
-
-            verify(mockMetronomeEngine, never()).setBpm(expectedBpm)
         }
 
     @Test
