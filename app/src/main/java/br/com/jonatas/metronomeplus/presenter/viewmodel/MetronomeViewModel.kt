@@ -11,6 +11,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
@@ -32,6 +33,7 @@ class MetronomeViewModel(
     private val decreaseBpmUseCase: DecreaseBpmUseCase,
     private val addBeatUseCase: AddBeatUseCase,
     private val removeBeatUseCase: RemoveBeatUseCase,
+    private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -66,9 +68,10 @@ class MetronomeViewModel(
         viewModelScope.launch {
             val currentState = _uiState.value
             if (currentState is MetronomeState.Ready) {
-                val newIsPlaying = !currentState.measure.isPlaying
-                _uiState.value =
-                    currentState.copy(measure = currentState.measure.copy(isPlaying = newIsPlaying))
+                val newIsPlaying = togglePlayPauseUseCase(currentState.measure.isPlaying)
+
+                val newMeasure = currentState.measure.copy(isPlaying = newIsPlaying)
+                _uiState.value = currentState.copy(measure = newMeasure)
 
                 withContext(dispatcher) {
                     mutex.withLock {
@@ -152,6 +155,7 @@ class MetronomeViewModelFactory(
     private val decreaseBpmUseCase: DecreaseBpmUseCase,
     private val addBeatUseCase: AddBeatUseCase,
     private val removeBeatUseCase: RemoveBeatUseCase,
+    private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -165,6 +169,7 @@ class MetronomeViewModelFactory(
                 decreaseBpmUseCase = decreaseBpmUseCase,
                 addBeatUseCase = addBeatUseCase,
                 removeBeatUseCase = removeBeatUseCase,
+                togglePlayPauseUseCase = togglePlayPauseUseCase,
                 dispatcher = dispatcher
             ) as T
         }
