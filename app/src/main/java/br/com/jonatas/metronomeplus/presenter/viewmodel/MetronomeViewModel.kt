@@ -12,6 +12,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
+import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -116,8 +117,8 @@ class MetronomeViewModel(
 
                 metronomeEngine.setBeats(newBeats.toDtoArray())
 
-                val newMeasure = currentState.measure.toDomain().copy(beats = newBeats)
-                _uiState.value = currentState.copy(measure = newMeasure.toUiModel())
+                val newMeasure = currentState.measure.copy(beats = newBeats.toUiModelList())
+                _uiState.value = currentState.copy(measure = newMeasure)
             }
         }
     }
