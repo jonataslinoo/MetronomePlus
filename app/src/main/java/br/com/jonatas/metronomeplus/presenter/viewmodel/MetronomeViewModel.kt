@@ -6,13 +6,12 @@ import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.data.mapper.toDto
 import br.com.jonatas.metronomeplus.data.mapper.toDtoArray
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
+import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
-import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
-import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -29,6 +28,7 @@ class MetronomeViewModel(
     private val getMeasureUseCase: GetMeasureUseCase,
     private val increaseBpmUseCase: IncreaseBpmUseCase,
     private val decreaseBpmUseCase: DecreaseBpmUseCase,
+    private val addBeatUseCase: AddBeatUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -112,14 +112,12 @@ class MetronomeViewModel(
         viewModelScope.launch {
             val currentState = _uiState.value
             if (currentState is MetronomeState.Ready) {
-                if (currentState.measure.beats.size < 16) {
-                    val newBeats = currentState.measure.beats + BeatUiModel(BeatStateUiModel.Normal)
-                    _uiState.value =
-                        currentState.copy(measure = currentState.measure.copy(beats = newBeats.toMutableList()))
+                val newBeats = addBeatUseCase(currentState.measure.toDomain().beats)
 
-                    val domainBeats = newBeats.map { it.toDomain() }
-                    metronomeEngine.setBeats(domainBeats.toDtoArray())
-                }
+                metronomeEngine.setBeats(newBeats.toDtoArray())
+
+                val newMeasure = currentState.measure.toDomain().copy(beats = newBeats)
+                _uiState.value = currentState.copy(measure = newMeasure.toUiModel())
             }
         }
     }
@@ -152,6 +150,7 @@ class MetronomeViewModelFactory(
     private val getMeasureUseCase: GetMeasureUseCase,
     private val increaseBpmUseCase: IncreaseBpmUseCase,
     private val decreaseBpmUseCase: DecreaseBpmUseCase,
+    private val addBeatUseCase: AddBeatUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -163,6 +162,7 @@ class MetronomeViewModelFactory(
                 getMeasureUseCase = getMeasureUseCase,
                 increaseBpmUseCase = increaseBpmUseCase,
                 decreaseBpmUseCase = decreaseBpmUseCase,
+                addBeatUseCase = addBeatUseCase,
                 dispatcher = dispatcher
             ) as T
         }
