@@ -8,6 +8,7 @@ import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.model.Beat
 import br.com.jonatas.metronomeplus.domain.model.BeatState
 import br.com.jonatas.metronomeplus.domain.model.Measure
+import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
@@ -49,12 +50,16 @@ class MetronomeViewModelTest {
     @Mock
     private lateinit var mockDecreaseBpmUseCase: DecreaseBpmUseCase
 
+    @Mock
+    private lateinit var mockAddBeatUseCase: AddBeatUseCase
+
     private val viewModel by lazy {
         MetronomeViewModel(
             mockMetronomeEngine,
             mockGetMeasureUseCase,
             mockIncreaseBpmUseCase,
             mockDecreaseBpmUseCase,
+            mockAddBeatUseCase,
             testDispatcher
         )
     }
@@ -221,82 +226,35 @@ class MetronomeViewModelTest {
         }
 
     @Test
-    fun `should add a normal beat when addBeat is called in the viewModel`() =
+    fun `should call AddBeatUseCase when addBeat is called`() =
         runTest(testDispatcher) {
             val initialMeasure = Measure(
                 bpm = 120,
                 beats = listOf(
                     Beat(BeatState.Accent),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
                 )
             )
             val expectedMeasure =
                 initialMeasure.copy(beats = initialMeasure.beats + Beat(BeatState.Normal))
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
+            `when`(mockAddBeatUseCase(initialMeasure.beats)).thenReturn(expectedMeasure.beats)
 
             viewModel.addBeat()
             advanceUntilIdle()
 
             val stateReady = viewModel.uiState.first()
-
+            assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
+            assertEquals(
+                expectedMeasure.toUiModel().beats.size,
+                (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
+            )
             assertEquals(
                 expectedMeasure.toUiModel().beats,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats
             )
-            assertEquals(
-                5,
-                (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
-            )
 
-            verify(mockMetronomeEngine).setBeats(
-                expectedMeasure.toDto().beats.toTypedArray()
-            )
-        }
-
-    @Test
-    fun `should not add more than sixteen beats when addBeat is called in the viewModel`() =
-        runTest(testDispatcher) {
-            val initialMeasure = Measure(
-                bpm = 0,
-                beats = listOf(
-                    Beat(BeatState.Accent),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                )
-            )
-            val expectedMeasure = initialMeasure.copy()
-            `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
-
-            viewModel.addBeat()
-            advanceUntilIdle()
-
-            val stateReady = viewModel.uiState.first()
-
-            assertEquals(
-                expectedMeasure.toUiModel().beats,
-                (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats
-            )
-            assertEquals(
-                16,
-                (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
-            )
-
-            verify(mockMetronomeEngine, never()).setBeats(anyList<BeatDto>().toTypedArray())
+            verify(mockAddBeatUseCase).invoke(initialMeasure.beats)
+            verify(mockMetronomeEngine).setBeats(expectedMeasure.beats.toDtoArray())
         }
 
     @Test

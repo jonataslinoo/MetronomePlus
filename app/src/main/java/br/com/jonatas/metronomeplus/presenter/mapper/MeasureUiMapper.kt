@@ -11,4 +11,7 @@ fun Measure.toUiModel(): MeasureUiModel = MeasureUiModel(
 )
 
 /** Ui for Domain */
-
+fun MeasureUiModel.toDomain(): Measure = Measure(
+    bpm = bpm,
+    beats = beats.map { it.toDomain() }
+)
