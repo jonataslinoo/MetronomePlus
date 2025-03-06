@@ -12,8 +12,11 @@ import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
+import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
+import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -54,6 +57,9 @@ class MetronomeViewModelTest {
 
     @Mock
     private lateinit var mockRemoveBeatUseCase: RemoveBeatUseCase
+
+    @Mock
+    private lateinit var mockTogglePlayPauseUseCase: TogglePlayPauseUseCase
     private val testDispatcher = StandardTestDispatcher()
 
     private val viewModel by lazy {
@@ -64,6 +70,7 @@ class MetronomeViewModelTest {
             mockDecreaseBpmUseCase,
             mockAddBeatUseCase,
             mockRemoveBeatUseCase,
+            mockTogglePlayPauseUseCase,
             testDispatcher
         )
     }
@@ -142,16 +149,9 @@ class MetronomeViewModelTest {
     @Test
     fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
         runTest(testDispatcher) {
-            val initialMeasure = Measure(
-                bpm = 120,
-                beats = listOf(
-                    Beat(BeatState.Accent),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                    Beat(BeatState.Normal),
-                )
-            )
-            `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
+            val measureUiModel = MeasureUiModel(isPlaying = false,bpm = 120, beats = listOf())
+            `when`(mockGetMeasureUseCase()).thenReturn(measureUiModel.toDomain())
+            `when`(mockTogglePlayPauseUseCase(measureUiModel.isPlaying)).thenReturn(true)
 
             viewModel.togglePlayPause()
             advanceUntilIdle()
@@ -163,6 +163,7 @@ class MetronomeViewModelTest {
                 (stateReadyIsPlayingTrue as MetronomeViewModel.MetronomeState.Ready).measure.isPlaying
             )
 
+            verify(mockTogglePlayPauseUseCase).invoke(measureUiModel.isPlaying)
             verify(mockMetronomeEngine).startPlaying()
 
             viewModel.togglePlayPause()
@@ -175,6 +176,7 @@ class MetronomeViewModelTest {
                 (stateReadyIsPlayingFalse as MetronomeViewModel.MetronomeState.Ready).measure.isPlaying
             )
 
+            verify(mockTogglePlayPauseUseCase).invoke(measureUiModel.isPlaying)
             verify(mockMetronomeEngine).stopPlaying()
         }
 
