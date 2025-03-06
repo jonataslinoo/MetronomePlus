@@ -20,6 +20,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCaseImpl
+import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCaseImpl
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModelFactory
 import kotlinx.coroutines.launch
@@ -87,13 +88,15 @@ class MetronomeFragment : Fragment() {
         val increaseBpmUseCase = IncreaseBpmUseCaseImpl()
         val decreaseBpmUseCase = DecreaseBpmUseCaseImpl()
         val addBeatUseCase = AddBeatUseCaseImpl()
+        val removeBeatUseCase = RemoveBeatUseCaseImpl()
 
         val viewModelFactory = MetronomeViewModelFactory(
             metronomeEngine = metronomeEngine,
             getMeasureUseCase = getMeasureUseCase,
             decreaseBpmUseCase = decreaseBpmUseCase,
             increaseBpmUseCase = increaseBpmUseCase,
-            addBeatUseCase = addBeatUseCase
+            addBeatUseCase = addBeatUseCase,
+            removeBeatUseCase = removeBeatUseCase,
         )
 
         viewModel = ViewModelProvider(this, viewModelFactory)[MetronomeViewModel::class.java]
