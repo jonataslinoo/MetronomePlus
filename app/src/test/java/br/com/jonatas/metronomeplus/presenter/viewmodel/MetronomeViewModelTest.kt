@@ -122,8 +122,8 @@ class MetronomeViewModelTest {
             assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
             assertEquals(expectedState, stateReady)
 
-            verify(mockMetronomeEngine).initialize(expectedMeasure.toDto())
             verify(mockGetMeasureUseCase).invoke()
+            verify(mockMetronomeEngine).initialize(expectedMeasure.toDto())
         }
 
     @Test
@@ -149,7 +149,7 @@ class MetronomeViewModelTest {
     @Test
     fun `should toggle isPlaying and play or pause the metronome engine when togglePlayPause is called`() =
         runTest(testDispatcher) {
-            val measureUiModel = MeasureUiModel(isPlaying = false,bpm = 120, beats = listOf())
+            val measureUiModel = MeasureUiModel(isPlaying = false, bpm = 120, beats = listOf())
             `when`(mockGetMeasureUseCase()).thenReturn(measureUiModel.toDomain())
             `when`(mockTogglePlayPauseUseCase(measureUiModel.isPlaying)).thenReturn(true)
 
@@ -248,11 +248,11 @@ class MetronomeViewModelTest {
             val stateReady = viewModel.uiState.first()
             assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
             assertEquals(
-                expectedMeasure.toUiModel().beats.size,
+                expectedMeasure.beats.toUiModelList().size,
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats.size
             )
             assertEquals(
-                expectedMeasure.toUiModel().beats,
+                expectedMeasure.beats.toUiModelList(),
                 (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats
             )
 
@@ -272,10 +272,9 @@ class MetronomeViewModelTest {
                     Beat(BeatState.Normal)
                 )
             )
-            val expectedBeats =
-                initialMeasure.beats.toMutableList().apply {
-                    removeAt(initialMeasure.beats.lastIndex)
-                }
+            val expectedBeats = initialMeasure.beats.toMutableList().apply {
+                removeAt(initialMeasure.beats.lastIndex)
+            }
             `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
             `when`(mockRemoveBeatUseCase(initialMeasure.beats)).thenReturn(expectedBeats)
 
