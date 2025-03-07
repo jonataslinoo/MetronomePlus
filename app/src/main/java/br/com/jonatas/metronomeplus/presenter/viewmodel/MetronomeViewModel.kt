@@ -23,8 +23,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 
 class MetronomeViewModel(
     private val metronomeEngine: MetronomeEngine,
@@ -70,18 +68,14 @@ class MetronomeViewModel(
             if (currentState is MetronomeState.Ready) {
                 val newIsPlaying = togglePlayPauseUseCase(currentState.measure.isPlaying)
 
+                if (newIsPlaying) {
+                    metronomeEngine.startPlaying()
+                } else {
+                    metronomeEngine.stopPlaying()
+                }
+
                 val newMeasure = currentState.measure.copy(isPlaying = newIsPlaying)
                 _uiState.value = currentState.copy(measure = newMeasure)
-
-                withContext(dispatcher) {
-                    mutex.withLock {
-                        if (newIsPlaying) {
-                            metronomeEngine.startPlaying()
-                        } else {
-                            metronomeEngine.stopPlaying()
-                        }
-                    }
-                }
             }
         }
     }
