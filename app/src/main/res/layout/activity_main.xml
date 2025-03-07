@@ -7,130 +7,14 @@
     android:layout_height="match_parent"
     tools:context=".presenter.ui.MainActivity">
 
-    <TextView
-        android:id="@+id/tvHello"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:text="Hello World!"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/fragment_container_view"
+        class="br.com.jonatas.metronomeplus.presenter.ui.fragment.MetronomeFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:gravity="center"
-        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btnMinusThen"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="20"
-                android:text="-10" />
-
-            <Button
-                android:id="@+id/btnMinusOne"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="20"
-                android:text="-1" />
-
-            <TextView
-                android:id="@+id/tvBpm"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="20"
-                android:text="120"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnMoreOne"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="20"
-                android:text="+1" />
-
-            <Button
-                android:id="@+id/btnMoreThen"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="20"
-                android:text="+10" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginHorizontal="8dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="5dp"
-                    android:layout_weight="40" />
-
-                <TextView
-                    android:id="@+id/beatCounter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="20"
-                    android:inputType="number"
-                    android:text="4"
-                    android:textAlignment="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <Button
-                    android:id="@+id/btnMinusOneBeat"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="20"
-                    android:text="-1" />
-
-                <Button
-                    android:id="@+id/btnMoreOneBeat"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="20"
-                    android:text="+1" />
-
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnPlayPause"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Play" />
-
-        </LinearLayout>
-
-    </LinearLayout>
+        app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
