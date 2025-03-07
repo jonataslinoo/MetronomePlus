@@ -104,35 +104,33 @@ bool Metronome::setupPlayerBeat(const char beat[], std::unique_ptr<Player> *play
 
 void Metronome::setBPM(int bpm) {
     mBPM = bpm;
-    mIntervalMs = 60000 / mBPM; // Calcula o intervalo em milissegundos
-    LOGI("BPM atualizado para: %d, Intervalo: %d ms", mBPM, mIntervalMs);
+    mIntervalMs = 60000 / mBPM;
 }
 
 void Metronome::setBeats(const std::vector<Beat> &beats) {
     mBeats = beats;
-
-    LOGI("Configured beats:");
-    for (const auto &beat: beats) {
-        LOGI("Beat state: %d", beat.state);
-    }
 }
 
 void Metronome::startPlaying() {
-    LOGI("iniciando");
     if (mIsMetronomePlaying) return;
+    if (mBeats.empty()) return;
 
     mIsMetronomePlaying = true;
-    mCurrentBeatIndex = 0; // Reinicia o índice
+    mCurrentBeatIndex = 0;
 
-    LOGI("iniciou");
-    mClapThread = std::thread([this]() {
+    mBeatThread = std::thread([this]() {
+        std::unique_lock<std::mutex> lock(mMutex);
+        int totalBeatsPerMeasure = 0;
+
         while (mIsMetronomePlaying) {
-            if (mBeats.empty()) continue;
+
+            totalBeatsPerMeasure = mBeats.size();
+            mCurrentBeatIndex = mCurrentBeatIndex % totalBeatsPerMeasure;
+
             const Beat &currentBeat = mBeats[mCurrentBeatIndex];
-            switch (currentBeat.state) {
+            switch (currentBeat.stateDto) {
                 case BeatState::Normal:
                     mNormalBeatPlayer->setPlaying(true);
-                    LOGI("normal beat");
                     break;
 
                 case BeatState::Silence:
@@ -140,28 +138,28 @@ void Metronome::startPlaying() {
 
                 case BeatState::Accent:
                     mAccentBeatPlayer->setPlaying(true);
-                    LOGI("accent beat");
                     break;
 
                 case BeatState::Medium:
                     mMediumBeatPlayer->setPlaying(true);
-                    LOGI("medium beat");
                     break;
             }
 
-            // Intervalo baseado no BPM
-            std::this_thread::sleep_for(std::chrono::milliseconds(mIntervalMs));
-            
-            // Volta ao início do compasso
-            mCurrentBeatIndex = (mCurrentBeatIndex + 1) % mBeats.size();
+            mCondition.wait_for(lock, std::chrono::milliseconds(mIntervalMs),
+                                [this] { return !mIsMetronomePlaying; });
+            mCurrentBeatIndex = (mCurrentBeatIndex + 1) % totalBeatsPerMeasure;
         }
     });
 }
 
 void Metronome::stopPlaying() {
-    mIsMetronomePlaying = false;
-    if (mClapThread.joinable()) {
-        mClapThread.join();
+    {
+        std::lock_guard<std::mutex> lock(mMutex);
+        mIsMetronomePlaying = false;
+    }
+    mCondition.notify_all();
+
+    if (mBeatThread.joinable()) {
+        mBeatThread.join();
     }
 }
-

@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.utils
+package br.com.jonatas.metronomeplus.core
 
 import android.content.Context
 import android.graphics.Matrix
@@ -13,7 +13,6 @@ import androidx.annotation.FloatRange
 import androidx.annotation.Nullable
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.RotaryKnobViewBinding
-import br.com.jonatas.metronomeplus.teste.AngularVelocityTracker
 import kotlin.math.atan2
 import kotlin.math.max
 import kotlin.math.min
