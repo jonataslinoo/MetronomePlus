@@ -67,6 +67,8 @@ class MetronomeFragment : Fragment() {
                                 tvBpm.text = uiState.measure.bpm.toString()
 
                                 beatCounter.text = uiState.measure.beats.size.toString()
+
+                                beatListView.updateBeats(uiState.measure.beats)
                             }
                         }
 
