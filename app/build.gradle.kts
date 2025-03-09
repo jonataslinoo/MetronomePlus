@@ -50,17 +50,25 @@ android {
             version = "3.22.1"
         }
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 dependencies {
     //Core
     implementation(libs.androidx.core.ktx)
     //Testing
-    androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.junit)
+    testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.mockk)
+    testImplementation(libs.robolectric)
     testImplementation(libs.kotlinx.coroutines.test)
     //UI
     implementation(libs.androidx.activity)
