@@ -6,6 +6,15 @@
     android:layout_height="match_parent"
     tools:context=".presenter.ui.fragment.MetronomeFragment">
 
+    <br.com.jonatas.metronomeplus.presenter.ui.custom.BeatListView
+        android:id="@+id/beatListView"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_margin="50dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
