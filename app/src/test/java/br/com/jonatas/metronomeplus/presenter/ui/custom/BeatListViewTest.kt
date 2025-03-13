@@ -75,4 +75,68 @@ class BeatListViewTest {
         assertEquals(expectedMargin, layoutParamsChildNormal.marginEnd)
         assertEquals(expectedMargin, layoutParamsChildNormal.bottomMargin)
     }
+
+    @Test
+    fun `should update the bpm and calculate interval correctly when it receives a new bpm`() {
+        val bpm = 120
+
+        beatListView.updateBpm(bpm)
+
+        val bpmField = BeatListView::class.java.getDeclaredField("bpm")
+        bpmField.isAccessible = true
+
+        assertEquals(bpm, bpmField.get(beatListView))
+
+        val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
+        intervalBeatField.isAccessible = true
+
+        assertEquals(83L, intervalBeatField.get(beatListView))
+    }
+
+    @Test
+    fun `should not update the bpm and calculate the interval if the newBpm is the same`() {
+        val initialBpm = 120
+
+        beatListView.updateBpm(initialBpm)
+
+        val bpmField = BeatListView::class.java.getDeclaredField("bpm")
+        bpmField.isAccessible = true
+        val expectedBpm = bpmField.get(beatListView)
+
+        val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
+        intervalBeatField.isAccessible = true
+        val expectedInterval = intervalBeatField.get(beatListView) as Long
+
+        beatListView.updateBpm(initialBpm)
+
+        val bpmFieldTwo = BeatListView::class.java.getDeclaredField("bpm")
+        bpmFieldTwo.isAccessible = true
+
+        assertEquals(expectedBpm, bpmFieldTwo.get(beatListView))
+
+        val intervalBeatFieldTwo = BeatListView::class.java.getDeclaredField("intervalBeat")
+        intervalBeatFieldTwo.isAccessible = true
+
+        assertEquals(expectedInterval, intervalBeatFieldTwo.get(beatListView))
+    }
+
+    @Test
+    fun `should correctly calculate the intervals when receiving different bpms`() {
+        val testCases = mapOf(
+            60 to 166L,
+            120 to 83L,
+            240 to 41L,
+            20 to 500L,
+            600 to 16L
+        )
+
+        val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
+        intervalBeatField.isAccessible = true
+
+        for ((bpm, expectedInterval) in testCases) {
+            beatListView.updateBpm(bpm)
+
+            assertEquals(expectedInterval, intervalBeatField.get(beatListView))
+        }
+    }
 }
