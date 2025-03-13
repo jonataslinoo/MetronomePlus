@@ -46,11 +46,11 @@ class MetronomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         setupViewModel()
-        setupObservers()
+        setupObserverUiState()
         setupClickListener()
     }
 
-    private fun setupObservers() {
+    private fun setupObserverUiState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { uiState ->
@@ -61,14 +61,13 @@ class MetronomeFragment : Fragment() {
 
                         is MetronomeViewModel.MetronomeState.Ready -> {
                             binding.apply {
-                                btnPlayPause.text =
-                                    if (uiState.measure.isPlaying) "Pause" else "Play"
+                                val measureUi = uiState.measure
+                                btnPlayPause.text = if (measureUi.isPlaying) "Pause" else "Play"
+                                tvBpm.text = measureUi.bpm.toString()
+                                beatCounter.text = measureUi.beats.size.toString()
 
-                                tvBpm.text = uiState.measure.bpm.toString()
-
-                                beatCounter.text = uiState.measure.beats.size.toString()
-
-                                beatListView.updateBeats(uiState.measure.beats)
+                                beatListView.updateBeats(measureUi.beats)
+                                beatListView.updateBpm(measureUi.bpm)
                             }
                         }
 
@@ -76,6 +75,20 @@ class MetronomeFragment : Fragment() {
                             Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT)
                                 .show()
                         }
+                    }
+                }
+            }
+        }
+
+        setupObserverBeatChanged()
+    }
+
+    private fun setupObserverBeatChanged() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.measureProgressUiState.collect { measureProgressUiState ->
+                    binding.apply {
+                        beatListView.nextBeat(measureProgressUiState.currentBeat)
                     }
                 }
             }
