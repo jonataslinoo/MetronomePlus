@@ -10,4 +10,5 @@ interface MetronomeEngine {
     fun startPlaying()
     fun stopPlaying()
     fun cleanup()
+    fun setOnBeatChangeListener(onBeatChangeListener: BeatChangeListener)
 }

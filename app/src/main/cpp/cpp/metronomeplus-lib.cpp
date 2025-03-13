@@ -137,7 +137,7 @@ JavaVM* gJvm = nullptr;
 jobject gListener = nullptr;
 
 JNIEXPORT void JNICALL
-Java_br_com_jonatas_metronomeplus_data_engine_NativeMetronomeEngine_native_1setListener(JNIEnv *env, jobject thiz,
+Java_br_com_jonatas_metronomeplus_data_engine_MetronomeEngineImpl_native_1setOnBeatChangeListener(JNIEnv *env, jobject thiz,
                                                                      jobject listener) {
     env->GetJavaVM(&gJvm);
     gListener = env->NewGlobalRef(listener);
@@ -155,7 +155,7 @@ void notifyUiChangeBeat(int beatIndex) {
     }
 
     jclass listenerClass = env->GetObjectClass(gListener);
-    jmethodID methodId = env->GetMethodID(listenerClass, "onBeat", "(I)V");
+    jmethodID methodId = env->GetMethodID(listenerClass, "onBeatChanged", "(I)V");
     if (methodId) {
         env->CallVoidMethod(gListener, methodId, beatIndex);
     }

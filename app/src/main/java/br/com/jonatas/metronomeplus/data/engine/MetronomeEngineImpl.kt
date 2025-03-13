@@ -3,6 +3,7 @@ package br.com.jonatas.metronomeplus.data.engine
 import android.content.res.AssetManager
 import br.com.jonatas.metronomeplus.data.model.BeatDto
 import br.com.jonatas.metronomeplus.data.model.MeasureDto
+import br.com.jonatas.metronomeplus.domain.engine.BeatChangeListener
 import br.com.jonatas.metronomeplus.domain.engine.MetronomeEngine
 import br.com.jonatas.metronomeplus.domain.provider.AssetProvider
 import br.com.jonatas.metronomeplus.domain.provider.AudioSettingsProvider
@@ -28,6 +29,8 @@ class MetronomeEngineImpl(
     override fun setBeats(beats: Array<BeatDto>) = native_SetBeats(beats)
     override fun startPlaying() = native_onStartPlaying()
     override fun stopPlaying() = native_onStopPlaying()
+    override fun setOnBeatChangeListener(onBeatChangeListener: BeatChangeListener) =
+        native_setOnBeatChangeListener(onBeatChangeListener = onBeatChangeListener)
 
     private external fun native_onInit(assetManager: AssetManager)
     private external fun native_onEnd()
@@ -39,6 +42,7 @@ class MetronomeEngineImpl(
         defaultSampleRate: Int,
         defaultFramesPerBurst: Int
     )
+    private external fun native_setOnBeatChangeListener(onBeatChangeListener: BeatChangeListener)
 
     companion object {
         private const val METRONOMEPLUS_LIB = "metronomeplus-lib"
