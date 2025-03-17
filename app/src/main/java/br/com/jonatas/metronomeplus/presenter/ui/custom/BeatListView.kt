@@ -12,6 +12,7 @@ import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class BeatListView @JvmOverloads constructor(
@@ -40,11 +41,11 @@ class BeatListView @JvmOverloads constructor(
         if (newBpm != bpm) {
             bpm = newBpm
 
-            intervalBeat = (60_000 / bpm / 6).toLong().coerceAtLeast(1)
+            intervalBeat = (60_000 / bpm / 3).toLong().coerceAtLeast(1)
         }
     }
 
-    fun nextBeat(index: Int, dispatcher: CoroutineDispatcher = Dispatchers.Main) {
+    fun nextBeat(index: Int, dispatcher: CoroutineDispatcher = Dispatchers.IO) {
         if (index < 0) return
         if (index >= beatsUi.size) return
         val beatUi = beatsUi[index]
@@ -52,22 +53,20 @@ class BeatListView @JvmOverloads constructor(
         CoroutineScope(dispatcher).launch {
             setImageView(
                 index = index,
-                getStateUiDrawableColor(
+                drawable = getStateUiDrawableColor(
                     context = context,
                     beatUi = beatUi
                 )
             )
 
-            postDelayed(
-                {
-                    setImageView(
-                        index = index,
-                        getStateUiDrawable(
-                            context = context,
-                            beatUi = beatUi
-                        )
-                    )
-                }, intervalBeat
+            delay(intervalBeat)
+
+            setImageView(
+                index = index,
+                drawable = getStateUiDrawable(
+                    context = context,
+                    beatUi = beatUi
+                )
             )
         }
     }
