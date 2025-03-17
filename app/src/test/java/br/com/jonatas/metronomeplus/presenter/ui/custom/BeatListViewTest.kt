@@ -139,4 +139,19 @@ class BeatListViewTest {
             assertEquals(expectedInterval, intervalBeatField.get(beatListView))
         }
     }
+
+    @Test
+    fun `should not throw an exception when it receives an index outside the range`() {
+        val beatsUi = listOf(
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Silence),
+            BeatUiModel(BeatStateUiModel.Accent),
+            BeatUiModel(BeatStateUiModel.Medium)
+        )
+
+        beatListView.updateBeats(beatsUi)
+
+        beatListView.nextBeat(-1)
+        beatListView.nextBeat(4)
+    }
 }
