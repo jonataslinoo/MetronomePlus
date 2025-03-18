@@ -11,6 +11,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
@@ -60,6 +61,10 @@ class MetronomeViewModelTest {
 
     @Mock
     private lateinit var mockTogglePlayPauseUseCase: TogglePlayPauseUseCase
+
+    @Mock
+    private lateinit var mockIncreaseMeasureCounter: IncreaseMeasureCounter
+
     private val testDispatcher = StandardTestDispatcher()
 
     private val viewModel by lazy {
@@ -71,6 +76,7 @@ class MetronomeViewModelTest {
             mockAddBeatUseCase,
             mockRemoveBeatUseCase,
             mockTogglePlayPauseUseCase,
+            mockIncreaseMeasureCounter,
             testDispatcher
         )
     }
@@ -294,5 +300,17 @@ class MetronomeViewModelTest {
 
             verify(mockRemoveBeatUseCase).invoke(initialMeasure.beats)
             verify(mockMetronomeEngine).setBeats(expectedBeats.toDtoArray())
+        }
+
+    @Test
+    fun `should call increaseMeasureCounter when onBeatChanged is notified`() =
+        runTest(testDispatcher) {
+            val index = 1
+            val measureCount = 0
+
+            viewModel.onBeatChanged(index)
+            advanceUntilIdle()
+
+            verify(mockIncreaseMeasureCounter).invoke(index, measureCount)
         }
 }

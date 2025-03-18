@@ -20,6 +20,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCaseImpl
+import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounterImpl
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCaseImpl
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
@@ -47,6 +48,7 @@ class MetronomeFragment : Fragment() {
 
         setupViewModel()
         setupObserverUiState()
+        setupObserverMeasureProgressUiState()
         setupClickListener()
     }
 
@@ -79,11 +81,9 @@ class MetronomeFragment : Fragment() {
                 }
             }
         }
-
-        setupObserverBeatChanged()
     }
 
-    private fun setupObserverBeatChanged() {
+    private fun setupObserverMeasureProgressUiState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.measureProgressUiState.collect { measureProgressUiState ->
@@ -106,6 +106,7 @@ class MetronomeFragment : Fragment() {
         val addBeatUseCase = AddBeatUseCaseImpl()
         val removeBeatUseCase = RemoveBeatUseCaseImpl()
         val togglePlayPauseUseCase = TogglePlayPauseUseCaseImpl()
+        val increaseMeasureCounter = IncreaseMeasureCounterImpl()
 
         val viewModelFactory = MetronomeViewModelFactory(
             metronomeEngine = metronomeEngine,
@@ -114,7 +115,8 @@ class MetronomeFragment : Fragment() {
             increaseBpmUseCase = increaseBpmUseCase,
             addBeatUseCase = addBeatUseCase,
             removeBeatUseCase = removeBeatUseCase,
-            togglePlayPauseUseCase = togglePlayPauseUseCase
+            togglePlayPauseUseCase = togglePlayPauseUseCase,
+            increaseMeasureCounter = increaseMeasureCounter
         )
 
         viewModel = ViewModelProvider(this, viewModelFactory)[MetronomeViewModel::class.java]
