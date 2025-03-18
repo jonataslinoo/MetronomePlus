@@ -15,6 +15,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+interface OnBeatClickListener {
+    fun onBeatClick(index: Int)
+}
+
 class BeatListView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : LinearLayout(context, attrs, defStyleAttr) {
@@ -22,6 +26,11 @@ class BeatListView @JvmOverloads constructor(
     private var beatsUi: List<BeatUiModel> = mutableListOf()
     private var bpm: Int = 0
     private var intervalBeat: Long = 0
+    private var onBeatClickListener: OnBeatClickListener? = null
+
+    fun setOnBeatClickListener(onBeatClickListener: OnBeatClickListener) {
+        this.onBeatClickListener = onBeatClickListener
+    }
 
     fun updateBeats(newBeats: List<BeatUiModel>) {
         if (newBeats != beatsUi) {
@@ -32,8 +41,8 @@ class BeatListView @JvmOverloads constructor(
 
     private fun refreshViews() {
         removeAllViews()
-        beatsUi.forEach { beatUi ->
-            addNewView(beatUi)
+        beatsUi.forEachIndexed { index, beatUi ->
+            addNewView(index, beatUi)
         }
     }
 
@@ -45,7 +54,7 @@ class BeatListView @JvmOverloads constructor(
         }
     }
 
-    fun nextBeat(index: Int, dispatcher: CoroutineDispatcher = Dispatchers.IO) {
+    fun nextBeat(index: Int, dispatcher: CoroutineDispatcher = Dispatchers.Main) {
         if (index < 0) return
         if (index >= beatsUi.size) return
         val beatUi = beatsUi[index]
@@ -71,15 +80,19 @@ class BeatListView @JvmOverloads constructor(
         }
     }
 
-    private fun addNewView(beatUiModel: BeatUiModel) {
+    private fun addNewView(index: Int, beatUiModel: BeatUiModel) {
         val imageView = ImageView(context).apply {
             setImageDrawable(getStateUiDrawable(context, beatUiModel))
 
             layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f).apply {
                 setMargins(4, 4, 4, 4)
             }
+
+            setOnClickListener {
+                onBeatClickListener?.onBeatClick(index)
+            }
         }
-        addView(imageView)
+        addView(imageView, index)
     }
 
     private fun setImageView(index: Int, drawable: Drawable?) {
