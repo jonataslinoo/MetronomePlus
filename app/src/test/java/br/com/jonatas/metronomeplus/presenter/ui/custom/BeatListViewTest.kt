@@ -90,7 +90,7 @@ class BeatListViewTest {
         val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
         intervalBeatField.isAccessible = true
 
-        assertEquals(83L, intervalBeatField.get(beatListView))
+        assertEquals(166L, intervalBeatField.get(beatListView))
     }
 
     @Test
@@ -121,13 +121,13 @@ class BeatListViewTest {
     }
 
     @Test
-    fun `should correctly calculate the intervals when receiving different bpms`() {
+    fun `should correctly calculate the intervals when receiving different bpm`() {
         val testCases = mapOf(
-            60 to 166L,
-            120 to 83L,
-            240 to 41L,
-            20 to 500L,
-            600 to 16L
+            60 to 333L,
+            120 to 166L,
+            240 to 83L,
+            20 to 1000L,
+            600 to 33L
         )
 
         val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
