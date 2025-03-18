@@ -1,6 +1,5 @@
 package br.com.jonatas.metronomeplus.presenter.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -12,6 +11,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
@@ -34,6 +34,7 @@ class MetronomeViewModel(
     private val addBeatUseCase: AddBeatUseCase,
     private val removeBeatUseCase: RemoveBeatUseCase,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
+    private val increaseMeasureCounter: IncreaseMeasureCounter,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel(), BeatChangeListener {
 
@@ -141,20 +142,21 @@ class MetronomeViewModel(
         }
     }
 
+    override fun onBeatChanged(index: Int) {
+        viewModelScope.launch {
+            val currentPair = _measureProgressUiState.value
+            val measureCount = increaseMeasureCounter(index, currentPair.measureCount)
+
+            _measureProgressUiState.value = currentPair.copy(
+                currentBeat = index,
+                measureCount = measureCount
+            )
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         metronomeEngine.cleanup()
-    }
-
-    override fun onBeatChanged(index: Int) {
-        val currentPair = _measureProgressUiState.value
-        var measureCount = currentPair.measureCount
-        if (index == 0) {
-            measureCount += 1
-        }
-
-        _measureProgressUiState.value =
-            currentPair.copy(currentBeat = index, measureCount = measureCount)
     }
 }
 
@@ -166,6 +168,7 @@ class MetronomeViewModelFactory(
     private val addBeatUseCase: AddBeatUseCase,
     private val removeBeatUseCase: RemoveBeatUseCase,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
+    private val increaseMeasureCounter: IncreaseMeasureCounter,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -180,6 +183,7 @@ class MetronomeViewModelFactory(
                 addBeatUseCase = addBeatUseCase,
                 removeBeatUseCase = removeBeatUseCase,
                 togglePlayPauseUseCase = togglePlayPauseUseCase,
+                increaseMeasureCounter = increaseMeasureCounter,
                 dispatcher = dispatcher
             ) as T
         }
