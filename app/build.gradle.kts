@@ -51,9 +51,14 @@ android {
         }
     }
     testOptions {
+        animationsDisabled = true
         unitTests {
             isIncludeAndroidResources = true
         }
+    }
+    packaging {
+        resources.excludes.add("META-INF/LICENSE.md")
+        resources.excludes.add("META-INF/LICENSE-notice.md")
     }
 }
 
@@ -63,16 +68,19 @@ dependencies {
     //Testing
     testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
-    testImplementation(libs.mockk)
+    testImplementation(libs.mockk.agent)
+    testImplementation(libs.mockk.android)
     testImplementation(libs.robolectric)
-    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.rules)
     androidTestImplementation(libs.androidx.runner)
     androidTestImplementation(libs.kotlinx.coroutines.test)
+    androidTestImplementation(libs.mockk.agent)
+    androidTestImplementation(libs.mockk.android)
     //UI
     implementation(libs.androidx.activity)
     implementation(libs.androidx.appcompat)
