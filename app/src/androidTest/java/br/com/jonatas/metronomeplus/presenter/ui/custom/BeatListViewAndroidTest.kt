@@ -17,11 +17,17 @@ import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.MainActivity
 import br.com.jonatas.metronomeplus.presenter.util.CustomViewMatchers.childOfParentAtIndex
-import io.mockk.mockk
+import io.mockk.MockKAnnotations
+import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -29,18 +35,25 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class BeatListViewAndroidTest {
 
     @get:Rule
     var activityRule = ActivityScenarioRule(MainActivity::class.java)
+
+    @RelaxedMockK
+    private lateinit var mockOnBeatClickListener: OnBeatClickListener
     private lateinit var beatListView: BeatListView
     private lateinit var beatsUi: List<BeatUiModel>
-    private lateinit var mockOnBeatClickListener: OnBeatClickListener
+    private val testDispatcher: TestDispatcher = StandardTestDispatcher()
 
     @Before
     fun setUp() {
+        MockKAnnotations.init(this)
+        Dispatchers.setMain(testDispatcher)
+
         beatsUi = listOf(
             BeatUiModel(BeatStateUiModel.Normal),
             BeatUiModel(BeatStateUiModel.Silence),
@@ -51,12 +64,15 @@ class BeatListViewAndroidTest {
         activityRule.scenario.onActivity { activity ->
             beatListView = activity.findViewById(R.id.beatListView)
 
-            mockOnBeatClickListener = mockk<OnBeatClickListener>(relaxed = true)
             beatListView.setOnBeatClickListener(mockOnBeatClickListener)
-
             beatListView.updateBeats(beatsUi)
             beatListView.updateBpm(60)
         }
+    }
+
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
     }
 
     @Test
@@ -72,147 +88,136 @@ class BeatListViewAndroidTest {
 
         onView(withId(R.id.beatListView))
             .check(matches(isDisplayed()))
+
+        activityRule.scenario.onActivity { activity ->
+
+            for (index in beatListView.indices) {
+                val expectedBitmap =
+                    activity.getDrawable(getDrawableRes(beatsUi[index]))?.toBitmap()
+
+                val child = beatListView.getChildAt(index) as? ImageView
+                val actualBitmap = child?.drawable?.toBitmap()
+
+                assertTrue(
+                    "The bitmap at index $index does not match expected bitmap!",
+                    expectedBitmap?.sameAs(actualBitmap) == true
+                )
+            }
+        }
+    }
+
+    @Test
+    fun shouldCorrectlyDisplayTheBeatChange() = runTest(testDispatcher) {
+        onView(childOfParentAtIndex(withId(R.id.beatListView), 0))
+            .check(matches(isDisplayed()))
             .check { view, noViewFoundException ->
                 noViewFoundException?.let { throw it }
 
-                val beatListView = view as BeatListView
+                activityRule.scenario.onActivity { activity ->
+                    beatListView.nextBeat(0)
 
-                for (index in beatsUi.indices) {
-                    val child = beatListView.getChildAt(index) as? ImageView
-                    val actualBitmap = child?.drawable?.toBitmap()
+                    val childImageView = view as ImageView
+                    val expectedNormalBitmap = activity
+                        .getDrawable(R.drawable.beat_item_normal)?.toBitmap()
+                    val actualNormalBitmapBeforeChange = childImageView.drawable.toBitmap()
 
-                    activityRule.scenario.onActivity { activity ->
-                        val expectedDrawable = activity.getDrawable(getDrawableRes(beatsUi[index]))
-                        assertNotNull(
-                            "The expected bitmap for index $index is null!",
-                            expectedDrawable
-                        )
-                        val expectedBitmap = expectedDrawable?.toBitmap()
+                    assertNotNull(
+                        "The expected normal bitmap before change is null!",
+                        expectedNormalBitmap
+                    )
+                    assertTrue(
+                        "The expected normal bitmap does not match the current normal bitmap before change!",
+                        expectedNormalBitmap?.sameAs(actualNormalBitmapBeforeChange) == true
+                    )
 
-                        assertTrue(
-                            "The bitmap at index $index does not match expected bitmap!",
-                            expectedBitmap?.sameAs(actualBitmap) == true
-                        )
-                    }
+                    testScheduler.runCurrent()
+
+                    val expectedNormalBitmapColor = activity
+                        .getDrawable(R.drawable.beat_item_normal_color)?.toBitmap()
+                    val actualNormalBitmapColor = childImageView.drawable.toBitmap()
+
+                    assertNotNull(
+                        "The expected colored normal bitmap is null!",
+                        expectedNormalBitmapColor
+                    )
+                    assertTrue(
+                        "The expected colored normal bitmap does not match the current colored normal bitmap!",
+                        expectedNormalBitmapColor?.sameAs(actualNormalBitmapColor) == true
+                    )
+
+                    testScheduler.advanceUntilIdle()
+
+                    val actualNormalBitmapAfterChange = childImageView.drawable.toBitmap()
+
+                    assertNotNull(
+                        "The expected normal bitmap after change is null!",
+                        expectedNormalBitmap
+                    )
+                    assertTrue(
+                        "The expected normal bitmap does not match the current normal bitmap after change!",
+                        expectedNormalBitmap?.sameAs(actualNormalBitmapAfterChange) == true
+                    )
                 }
             }
     }
 
     @Test
-    fun shouldCorrectlyDisplayTheBeatChange() = runTest {
-        val testDispatcher: TestDispatcher = StandardTestDispatcher(testScheduler)
+    fun shouldCorrectlyDisplayExchangeAllBeats() = runTest(testDispatcher) {
+        onView(withId(R.id.beatListView))
+            .check(matches(isDisplayed()))
 
-        beatListView.nextBeat(0, testDispatcher)
+        for (index in beatListView.indices) {
+            onView(childOfParentAtIndex(withId(R.id.beatListView), index))
+                .check(matches(isDisplayed()))
+                .check { view, noViewFoundException ->
+                    noViewFoundException?.let { throw it }
+                    val childImageView = view as ImageView
 
-        val imageView = beatListView.getChildAt(0) as ImageView
-        val actualNormalBitmapBeforeChange = imageView.drawable.toBitmap()
-        activityRule.scenario.onActivity { activity ->
-            val expectedNormalBitmapBeforeChange =
-                activity.getDrawable(R.drawable.beat_item_normal)?.toBitmap()
+                    activityRule.scenario.onActivity { activity ->
+                        beatListView.nextBeat(index)
 
-            assertNotNull(
-                "The expected normal bitmap before change is null!",
-                expectedNormalBitmapBeforeChange
-            )
-            assertTrue(
-                "The expected normal bitmap does not match the current normal bitmap before change!",
-                expectedNormalBitmapBeforeChange?.sameAs(actualNormalBitmapBeforeChange) == true
-            )
-        }
+                        val expectedBitmapBeforeChange =
+                            activity.getDrawable(getDrawableRes(beatsUi[index]))?.toBitmap()
+                        val actualBitmapBeforeChange = childImageView.drawable.toBitmap()
 
-        testScheduler.runCurrent()
+                        assertNotNull(
+                            "The expected bitmap for index $index is null!",
+                            expectedBitmapBeforeChange
+                        )
+                        assertTrue(
+                            "The actual bitmap doesn't match the expected bitmap in $index!",
+                            expectedBitmapBeforeChange?.sameAs(actualBitmapBeforeChange) == true
+                        )
 
-        val actualNormalBitmapColor = imageView.drawable.toBitmap()
-        activityRule.scenario.onActivity { activity ->
-            val expectedNormalBitmapColor =
-                activity.getDrawable(R.drawable.beat_item_normal_color)?.toBitmap()
+                        testScheduler.runCurrent()
 
-            assertNotNull(
-                "The expected colored normal bitmap is null!",
-                expectedNormalBitmapColor
-            )
-            assertTrue(
-                "The expected colored normal bitmap does not match the current colored normal bitmap!",
-                expectedNormalBitmapColor?.sameAs(actualNormalBitmapColor) == true
-            )
-        }
+                        val expectedBitmapColor =
+                            activity.getDrawable(getDrawableColorRes(beatsUi[index]))?.toBitmap()
+                        val actualBitmapColor = childImageView.drawable.toBitmap()
 
-        testScheduler.advanceUntilIdle()
+                        assertNotNull(
+                            "The expected bitmap colored for index $index is null!",
+                            expectedBitmapColor
+                        )
+                        assertTrue(
+                            "The actual bitmap colored doesn't match the expected bitmap colored in $index!",
+                            expectedBitmapColor?.sameAs(actualBitmapColor) == true
+                        )
 
-        val actualNormalBitmapAfterChange = imageView.drawable.toBitmap()
-        activityRule.scenario.onActivity { activity ->
-            val expectedNormalBitmapAfterChange =
-                activity.getDrawable(R.drawable.beat_item_normal)?.toBitmap()
+                        testScheduler.advanceUntilIdle()
 
-            assertNotNull(
-                "The expected normal bitmap after change is null!",
-                expectedNormalBitmapAfterChange
-            )
+                        val actualBitmapAfterChange = childImageView.drawable.toBitmap()
 
-            assertTrue(
-                "The expected normal bitmap does not match the current normal bitmap after change!",
-                expectedNormalBitmapAfterChange?.sameAs(actualNormalBitmapAfterChange) == true
-            )
-        }
-    }
-
-    @Test
-    fun shouldCorrectlyDisplayExchangeAllBeats() = runTest {
-        val testDispatcher = StandardTestDispatcher(testScheduler)
-
-        for (index in beatsUi.indices) {
-
-            beatListView.nextBeat(index, testDispatcher)
-
-            val imageView = beatListView.getChildAt(index) as ImageView
-            val actualBitmapBeforeChange = imageView.drawable.toBitmap()
-            activityRule.scenario.onActivity { activity ->
-                val expectedBitmapBeforeChange =
-                    activity.getDrawable(getDrawableRes(beatsUi[index]))?.toBitmap()
-
-                assertNotNull(
-                    "The expected bitmap for index $index is null!",
-                    expectedBitmapBeforeChange
-                )
-                assertTrue(
-                    "The actual bitmap doesn't match the expected bitmap in $index!",
-                    expectedBitmapBeforeChange?.sameAs(actualBitmapBeforeChange) == true
-                )
-            }
-
-            testScheduler.runCurrent()
-
-            val actualBitmapColor = imageView.drawable.toBitmap()
-            activityRule.scenario.onActivity { activity ->
-                val expectedBitmapColor =
-                    activity.getDrawable(getDrawableColorRes(beatsUi[index]))?.toBitmap()
-
-                assertNotNull(
-                    "The expected bitmap colored for index $index is null!",
-                    expectedBitmapColor
-                )
-                assertTrue(
-                    "The actual bitmap colored doesn't match the expected bitmap colored in $index!",
-                    expectedBitmapColor?.sameAs(actualBitmapColor) == true
-                )
-            }
-
-            testScheduler.advanceUntilIdle()
-
-            val actualBitmapAfterChange = imageView.drawable.toBitmap()
-            activityRule.scenario.onActivity { activity ->
-                val expectedBitmapAfterChange =
-                    activity.getDrawable(getDrawableRes(beatsUi[index]))?.toBitmap()
-
-                assertNotNull(
-                    "The expected bitmap for index $index is null!",
-                    expectedBitmapAfterChange
-                )
-                assertTrue(
-                    "The actual bitmap doesn't match the expected bitmap in $index!",
-                    expectedBitmapAfterChange?.sameAs(actualBitmapAfterChange) == true
-                )
-            }
+                        assertNotNull(
+                            "The expected bitmap for index $index is null!",
+                            expectedBitmapBeforeChange
+                        )
+                        assertTrue(
+                            "The actual bitmap doesn't match the expected bitmap in $index!",
+                            expectedBitmapBeforeChange?.sameAs(actualBitmapAfterChange) == true
+                        )
+                    }
+                }
         }
     }
 
@@ -225,18 +230,20 @@ class BeatListViewAndroidTest {
 
     @Test
     fun shouldCallOnBeatClickListenerWithCorrectIndex_whenEachBeatIsClicked() {
+        onView(withId(R.id.beatListView))
+            .check(matches(isDisplayed()))
+
         activityRule.scenario.onActivity {
-            val newBeats =
-                listOf(
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
-                )
+            val newBeats = listOf(
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+            )
 
             beatListView.updateBeats(newBeats)
         }
