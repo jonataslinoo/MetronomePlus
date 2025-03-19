@@ -2,7 +2,9 @@ package br.com.jonatas.metronomeplus.presenter.ui.custom
 
 import android.widget.ImageView
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.indices
 import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.assertion.ViewAssertions.matches
 import androidx.test.espresso.matcher.ViewMatchers.hasChildCount
 import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
@@ -14,6 +16,9 @@ import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.MainActivity
+import br.com.jonatas.metronomeplus.presenter.util.CustomViewMatchers.childOfParentAtIndex
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.runTest
@@ -30,9 +35,9 @@ class BeatListViewAndroidTest {
 
     @get:Rule
     var activityRule = ActivityScenarioRule(MainActivity::class.java)
-
     private lateinit var beatListView: BeatListView
     private lateinit var beatsUi: List<BeatUiModel>
+    private lateinit var mockOnBeatClickListener: OnBeatClickListener
 
     @Before
     fun setUp() {
@@ -45,6 +50,9 @@ class BeatListViewAndroidTest {
 
         activityRule.scenario.onActivity { activity ->
             beatListView = activity.findViewById(R.id.beatListView)
+
+            mockOnBeatClickListener = mockk<OnBeatClickListener>(relaxed = true)
+            beatListView.setOnBeatClickListener(mockOnBeatClickListener)
 
             beatListView.updateBeats(beatsUi)
             beatListView.updateBpm(60)
@@ -205,6 +213,37 @@ class BeatListViewAndroidTest {
                     expectedBitmapAfterChange?.sameAs(actualBitmapAfterChange) == true
                 )
             }
+        }
+    }
+
+    @Test
+    fun shouldCallOnBeatClickListenerWithCorrectIndex_whenBeatIsClicked() {
+
+        onView(childOfParentAtIndex(withId(R.id.beatListView), 1)).perform(click())
+        verify { mockOnBeatClickListener.onBeatClick(1) }
+    }
+
+    @Test
+    fun shouldCallOnBeatClickListenerWithCorrectIndex_whenEachBeatIsClicked() {
+        activityRule.scenario.onActivity {
+            val newBeats =
+                listOf(
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal), BeatUiModel(BeatStateUiModel.Normal),
+                )
+
+            beatListView.updateBeats(newBeats)
+        }
+
+        for (index in beatListView.indices) {
+            onView(childOfParentAtIndex(withId(R.id.beatListView), index)).perform(click())
+            verify { mockOnBeatClickListener.onBeatClick(index) }
         }
     }
 
