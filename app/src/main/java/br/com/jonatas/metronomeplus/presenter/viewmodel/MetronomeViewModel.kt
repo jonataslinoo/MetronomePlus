@@ -12,6 +12,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
+import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
@@ -35,6 +36,7 @@ class MetronomeViewModel(
     private val removeBeatUseCase: RemoveBeatUseCase,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val increaseMeasureCounter: IncreaseMeasureCounter,
+    private val nextBeatStateUseCase: NextBeatStateUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel(), BeatChangeListener {
 
@@ -142,6 +144,20 @@ class MetronomeViewModel(
         }
     }
 
+    fun changeBeatState(index: Int) {
+        viewModelScope.launch {
+            val currentState = _uiState.value
+            if (currentState is MetronomeState.Ready) {
+                val newBeats = nextBeatStateUseCase(index, currentState.measure.toDomain().beats)
+
+                metronomeEngine.setBeats(newBeats.toDtoArray())
+
+                val newMeasureUi = currentState.measure.copy(beats = newBeats.toUiModelList())
+                _uiState.value = currentState.copy(measure = newMeasureUi)
+            }
+        }
+    }
+
     override fun onBeatChanged(index: Int) {
         viewModelScope.launch {
             val currentPair = _measureProgressUiState.value
@@ -169,6 +185,7 @@ class MetronomeViewModelFactory(
     private val removeBeatUseCase: RemoveBeatUseCase,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val increaseMeasureCounter: IncreaseMeasureCounter,
+    private val nextBeatStateUseCase: NextBeatStateUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -184,6 +201,7 @@ class MetronomeViewModelFactory(
                 removeBeatUseCase = removeBeatUseCase,
                 togglePlayPauseUseCase = togglePlayPauseUseCase,
                 increaseMeasureCounter = increaseMeasureCounter,
+                nextBeatStateUseCase = nextBeatStateUseCase,
                 dispatcher = dispatcher
             ) as T
         }
