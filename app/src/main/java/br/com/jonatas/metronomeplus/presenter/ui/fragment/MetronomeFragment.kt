@@ -21,8 +21,10 @@ import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounterImpl
+import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCaseImpl
+import br.com.jonatas.metronomeplus.presenter.ui.custom.OnBeatClickListener
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModelFactory
 import kotlinx.coroutines.launch
@@ -107,6 +109,7 @@ class MetronomeFragment : Fragment() {
         val removeBeatUseCase = RemoveBeatUseCaseImpl()
         val togglePlayPauseUseCase = TogglePlayPauseUseCaseImpl()
         val increaseMeasureCounter = IncreaseMeasureCounterImpl()
+        val nextBeatStateUseCase = NextBeatStateUseCaseImpl()
 
         val viewModelFactory = MetronomeViewModelFactory(
             metronomeEngine = metronomeEngine,
@@ -116,6 +119,7 @@ class MetronomeFragment : Fragment() {
             addBeatUseCase = addBeatUseCase,
             removeBeatUseCase = removeBeatUseCase,
             togglePlayPauseUseCase = togglePlayPauseUseCase,
+            nextBeatStateUseCase = nextBeatStateUseCase,
             increaseMeasureCounter = increaseMeasureCounter
         )
 
@@ -130,6 +134,11 @@ class MetronomeFragment : Fragment() {
         binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(10) }
         binding.btnMoreOneBeat.setOnClickListener { viewModel.addBeat() }
         binding.btnMinusOneBeat.setOnClickListener { viewModel.removeBeat() }
+        binding.beatListView.setOnBeatClickListener(object : OnBeatClickListener {
+            override fun onBeatClick(index: Int) {
+                viewModel.changeBeatState(index)
+            }
+        })
     }
 
     override fun onDestroyView() {
