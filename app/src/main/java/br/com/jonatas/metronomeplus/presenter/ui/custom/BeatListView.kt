@@ -27,6 +27,7 @@ class BeatListView @JvmOverloads constructor(
     private var bpm: Int = 0
     private var intervalBeat: Long = 0
     private var onBeatClickListener: OnBeatClickListener? = null
+    private var highlightedBeatIndex: Int = -1
 
     fun setOnBeatClickListener(onBeatClickListener: OnBeatClickListener) {
         this.onBeatClickListener = onBeatClickListener
@@ -42,7 +43,7 @@ class BeatListView @JvmOverloads constructor(
     private fun refreshViews() {
         removeAllViews()
         beatsUi.forEachIndexed { index, beatUi ->
-            addNewView(index, beatUi)
+            addNewView(index = index, beatUiModel = beatUi)
         }
     }
 
@@ -57,27 +58,37 @@ class BeatListView @JvmOverloads constructor(
     fun nextBeat(index: Int, dispatcher: CoroutineDispatcher = Dispatchers.Main) {
         if (index < 0) return
         if (index >= beatsUi.size) return
-        val beatUi = beatsUi[index]
 
         CoroutineScope(dispatcher).launch {
-            setImageView(
-                index = index,
-                drawable = getStateUiDrawableColor(
-                    context = context,
-                    beatUi = beatUi
-                )
-            )
-
+            highlightBeat(index)
             delay(intervalBeat)
-
-            setImageView(
-                index = index,
-                drawable = getStateUiDrawable(
-                    context = context,
-                    beatUi = beatUi
-                )
-            )
+            removeHighlight()
         }
+    }
+
+    private suspend fun highlightBeat(index: Int) {
+        highlightedBeatIndex = index
+        val beatUi = beatsUi[highlightedBeatIndex]
+        val highlightedDrawable = getStateUiDrawableColor(
+            context = context,
+            beatUi = beatUi
+        )
+        setImageView(
+            index = highlightedBeatIndex,
+            drawable = highlightedDrawable
+        )
+    }
+
+    private suspend fun removeHighlight() {
+        val beatUi = beatsUi[highlightedBeatIndex]
+        val normalDrawable = getStateUiDrawable(
+            context = context,
+            beatUi = beatUi
+        )
+        setImageView(
+            index = highlightedBeatIndex,
+            drawable = normalDrawable
+        )
     }
 
     private fun addNewView(index: Int, beatUiModel: BeatUiModel) {
@@ -89,7 +100,7 @@ class BeatListView @JvmOverloads constructor(
             }
 
             setOnClickListener {
-                onBeatClickListener?.onBeatClick(index)
+                onBeatClickListener?.onBeatClick(index = index)
             }
         }
         addView(imageView, index)
