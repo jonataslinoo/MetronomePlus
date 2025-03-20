@@ -72,9 +72,8 @@ class MetronomeViewModel(
 
     fun togglePlayPause() {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is MetronomeState.Ready) {
-                val newIsPlaying = togglePlayPauseUseCase(currentState.measure.isPlaying)
+            withState<MetronomeState.Ready> {
+                val newIsPlaying = togglePlayPauseUseCase(measure.isPlaying)
 
                 if (newIsPlaying) {
                     metronomeEngine.startPlaying()
@@ -82,78 +81,73 @@ class MetronomeViewModel(
                     metronomeEngine.stopPlaying()
                 }
 
-                val newMeasure = currentState.measure.copy(isPlaying = newIsPlaying)
-                _uiState.value = currentState.copy(measure = newMeasure)
+                val newMeasure = measure.copy(isPlaying = newIsPlaying)
+                _uiState.value = copy(measure = newMeasure)
             }
         }
     }
 
     fun increaseBpm(value: Int) {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is MetronomeState.Ready) {
-                val newBpm = increaseBpmUseCase(currentState.measure.bpm, value)
+            withState<MetronomeState.Ready> {
+                val newBpm = increaseBpmUseCase(measure.bpm, value)
 
                 metronomeEngine.setBpm(newBpm)
 
-                val newMeasure = currentState.measure.copy(bpm = newBpm)
-                _uiState.value = currentState.copy(measure = newMeasure)
+                val newMeasure = measure.copy(bpm = newBpm)
+                _uiState.value = copy(measure = newMeasure)
             }
         }
     }
 
     fun decreaseBpm(value: Int) {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is MetronomeState.Ready) {
-                val newBpm = decreaseBpmUseCase(currentState.measure.bpm, value)
+            withState<MetronomeState.Ready> {
+                val newBpm = decreaseBpmUseCase(measure.bpm, value)
 
                 metronomeEngine.setBpm(newBpm)
 
-                val newMeasure = currentState.measure.copy(bpm = newBpm)
-                _uiState.value = currentState.copy(measure = newMeasure)
+                val newMeasure = measure.copy(bpm = newBpm)
+                _uiState.value = copy(measure = newMeasure)
             }
         }
     }
 
     fun addBeat() {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is MetronomeState.Ready) {
-                val newBeats = addBeatUseCase(currentState.measure.toDomain().beats)
+            withState<MetronomeState.Ready> {
+                val newBeats = addBeatUseCase(measure.toDomain().beats)
 
                 metronomeEngine.setBeats(newBeats.toDtoArray())
 
-                val newMeasure = currentState.measure.copy(beats = newBeats.toUiModelList())
-                _uiState.value = currentState.copy(measure = newMeasure)
+                val newMeasure = measure.copy(beats = newBeats.toUiModelList())
+                _uiState.value = copy(measure = newMeasure)
             }
         }
     }
 
     fun removeBeat() {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is MetronomeState.Ready) {
-                val newBeats = removeBeatUseCase(currentState.measure.toDomain().beats)
+            withState<MetronomeState.Ready> {
+                val newBeats = removeBeatUseCase(measure.toDomain().beats)
 
                 metronomeEngine.setBeats(newBeats.toDtoArray())
 
-                val newMeasure = currentState.measure.copy(beats = newBeats.toUiModelList())
-                _uiState.value = currentState.copy(measure = newMeasure)
+                val newMeasure = measure.copy(beats = newBeats.toUiModelList())
+                _uiState.value = copy(measure = newMeasure)
             }
         }
     }
 
     fun changeBeatState(index: Int) {
         viewModelScope.launch {
-            val currentState = _uiState.value
-            if (currentState is MetronomeState.Ready) {
-                val newBeats = nextBeatStateUseCase(index, currentState.measure.toDomain().beats)
+            withState<MetronomeState.Ready> {
+                val newBeats = nextBeatStateUseCase(index, measure.toDomain().beats)
 
                 metronomeEngine.setBeats(newBeats.toDtoArray())
 
-                val newMeasureUi = currentState.measure.copy(beats = newBeats.toUiModelList())
-                _uiState.value = currentState.copy(measure = newMeasureUi)
+                val newMeasureUi = measure.copy(beats = newBeats.toUiModelList())
+                _uiState.value = copy(measure = newMeasureUi)
             }
         }
     }
@@ -173,6 +167,13 @@ class MetronomeViewModel(
     override fun onCleared() {
         super.onCleared()
         metronomeEngine.cleanup()
+    }
+
+    private inline fun <reified T : MetronomeState> withState(block: T.() -> Unit) {
+        val currentState = _uiState.value
+        if (currentState is T) {
+            block(currentState)
+        }
     }
 }
 
