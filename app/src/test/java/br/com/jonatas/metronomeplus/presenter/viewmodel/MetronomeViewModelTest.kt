@@ -11,11 +11,14 @@ import br.com.jonatas.metronomeplus.domain.usecase.AddBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.DecreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.GetMeasureUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
+import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
+import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -60,6 +63,13 @@ class MetronomeViewModelTest {
 
     @Mock
     private lateinit var mockTogglePlayPauseUseCase: TogglePlayPauseUseCase
+
+    @Mock
+    private lateinit var mockIncreaseMeasureCounter: IncreaseMeasureCounter
+
+    @Mock
+    private lateinit var mockNextBeatStateUseCase: NextBeatStateUseCase
+
     private val testDispatcher = StandardTestDispatcher()
 
     private val viewModel by lazy {
@@ -71,6 +81,8 @@ class MetronomeViewModelTest {
             mockAddBeatUseCase,
             mockRemoveBeatUseCase,
             mockTogglePlayPauseUseCase,
+            mockIncreaseMeasureCounter,
+            mockNextBeatStateUseCase,
             testDispatcher
         )
     }
@@ -293,6 +305,44 @@ class MetronomeViewModelTest {
             )
 
             verify(mockRemoveBeatUseCase).invoke(initialMeasure.beats)
+            verify(mockMetronomeEngine).setBeats(expectedBeats.toDtoArray())
+        }
+
+    @Test
+    fun `should call increaseMeasureCounter when onBeatChanged is notified`() =
+        runTest(testDispatcher) {
+            val index = 1
+            val measureCount = 0
+
+            viewModel.onBeatChanged(index)
+            advanceUntilIdle()
+
+            verify(mockIncreaseMeasureCounter).invoke(index, measureCount)
+        }
+
+    @Test
+    fun `should change to the next beat state when changeBeatState is called`() =
+        runTest(testDispatcher) {
+            val index = 0
+            val initialMeasure = Measure(
+                bpm = 120,
+                beats = listOf(Beat(BeatState.Normal))
+            )
+            val expectedBeats = listOf(Beat(BeatState.Silence))
+            `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
+            `when`(mockNextBeatStateUseCase(index, initialMeasure.beats)).thenReturn(expectedBeats)
+
+            viewModel.changeBeatState(index)
+            advanceUntilIdle()
+
+            val stateReady = viewModel.uiState.first()
+            assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
+            assertEquals(
+                expectedBeats.toUiModelList(),
+                (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.beats
+            )
+
+            verify(mockNextBeatStateUseCase).invoke(index, initialMeasure.beats)
             verify(mockMetronomeEngine).setBeats(expectedBeats.toDtoArray())
         }
 }

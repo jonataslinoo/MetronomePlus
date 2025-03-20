@@ -127,6 +127,10 @@ void Metronome::startPlaying() {
             totalBeatsPerMeasure = mBeats.size();
             mCurrentBeatIndex = mCurrentBeatIndex % totalBeatsPerMeasure;
 
+            lock.unlock();
+            notifyUiChangeBeat(mCurrentBeatIndex);
+            lock.lock();
+
             const Beat &currentBeat = mBeats[mCurrentBeatIndex];
             switch (currentBeat.stateDto) {
                 case BeatState::Normal:
