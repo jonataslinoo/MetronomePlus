@@ -14,11 +14,11 @@ import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
 import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
-import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.MeasureUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -56,6 +56,9 @@ class MetronomeViewModelTest {
     private lateinit var mockDecreaseBpmUseCase: DecreaseBpmUseCase
 
     @Mock
+    private lateinit var mockSetBpmUseCase: SetBpmUseCase
+
+    @Mock
     private lateinit var mockAddBeatUseCase: AddBeatUseCase
 
     @Mock
@@ -74,16 +77,17 @@ class MetronomeViewModelTest {
 
     private val viewModel by lazy {
         MetronomeViewModel(
-            mockMetronomeEngine,
-            mockGetMeasureUseCase,
-            mockIncreaseBpmUseCase,
-            mockDecreaseBpmUseCase,
-            mockAddBeatUseCase,
-            mockRemoveBeatUseCase,
-            mockTogglePlayPauseUseCase,
-            mockIncreaseMeasureCounter,
-            mockNextBeatStateUseCase,
-            testDispatcher
+            metronomeEngine = mockMetronomeEngine,
+            getMeasureUseCase = mockGetMeasureUseCase,
+            increaseBpmUseCase = mockIncreaseBpmUseCase,
+            decreaseBpmUseCase = mockDecreaseBpmUseCase,
+            setBpmUseCase = mockSetBpmUseCase,
+            addBeatUseCase = mockAddBeatUseCase,
+            removeBeatUseCase = mockRemoveBeatUseCase,
+            togglePlayPauseUseCase = mockTogglePlayPauseUseCase,
+            increaseMeasureCounter = mockIncreaseMeasureCounter,
+            nextBeatStateUseCase = mockNextBeatStateUseCase,
+            dispatcher = testDispatcher
         )
     }
 
@@ -241,6 +245,27 @@ class MetronomeViewModelTest {
             verify(mockDecreaseBpmUseCase).invoke(initialBpm, decrement)
             verify(mockMetronomeEngine).setBpm(expectedBpm)
         }
+
+    @Test
+    fun `should call setBpmUseCase when setBpm is called with a value`() = runTest(testDispatcher) {
+        val initialBpm = 120
+        val newBpm = 100
+        val expectedBpm = 100
+
+        val initialMeasure = Measure(bpm = initialBpm, beats = listOf())
+        `when`(mockGetMeasureUseCase()).thenReturn(initialMeasure)
+        `when`(mockSetBpmUseCase(newBpm)).thenReturn(newBpm)
+
+        viewModel.setBpm(newBpm)
+        advanceUntilIdle()
+
+        val stateReady = viewModel.uiState.first()
+        assertTrue(stateReady is MetronomeViewModel.MetronomeState.Ready)
+        assertEquals(
+            expectedBpm,
+            (stateReady as MetronomeViewModel.MetronomeState.Ready).measure.bpm
+        )
+    }
 
     @Test
     fun `should call AddBeatUseCase when addBeat is called`() =
