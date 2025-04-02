@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <View
+        android:id="@+id/verticalLineOne"
+        android:layout_width="2dp"
+        android:layout_height="10dp"
+        android:background="@color/white"
+        android:layout_marginStart="34dp"
+        android:layout_marginTop="6dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/horizontalLineOne"
+        android:layout_width="28dp"
+        android:layout_height="2dp"
+        android:background="@color/white"
+        app:layout_constraintStart_toEndOf="@id/verticalLineOne"
+        app:layout_constraintTop_toTopOf="@id/verticalLineOne" />
+
+    <TextView
+        android:id="@+id/titleButtonsSignature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="6dp"
+        android:text="BEAT"
+        android:textColor="@color/white"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="@id/horizontalLineOne"
+        app:layout_constraintStart_toEndOf="@id/horizontalLineOne"
+        app:layout_constraintTop_toTopOf="@id/horizontalLineOne" />
+
+    <View
+        android:id="@+id/horizontalLineTwo"
+        android:layout_width="28dp"
+        android:layout_height="2dp"
+        android:layout_marginHorizontal="6dp"
+        android:background="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/titleButtonsSignature"
+        app:layout_constraintStart_toEndOf="@id/titleButtonsSignature"
+        app:layout_constraintTop_toTopOf="@id/titleButtonsSignature" />
+
+    <View
+        android:id="@+id/verticalLineTwo"
+        android:layout_width="2dp"
+        android:layout_height="10dp"
+        android:background="@color/white"
+        app:layout_constraintStart_toEndOf="@id/horizontalLineTwo"
+        app:layout_constraintTop_toTopOf="@id/horizontalLineTwo" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnLessTimeSig"
+        style="@style/defaultButtonStyle"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginTop="6dp"
+        android:drawableStart="@drawable/ic_remove_white"
+        android:paddingStart="24dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/verticalLineOne" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnMoreTimeSig"
+        style="@style/defaultButtonStyle"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:drawableStart="@drawable/ic_add_white"
+        android:paddingStart="24dp"
+        android:layout_marginHorizontal="16dp"
+        app:layout_constraintStart_toEndOf="@id/btnLessTimeSig"
+        app:layout_constraintTop_toTopOf="@id/btnLessTimeSig" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

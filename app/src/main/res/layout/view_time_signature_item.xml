@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/titleBeatsPerMeasure"
+        style="@style/textTitleDisplayStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="2dp"
+        android:text="@string/title_time_signature_uppercase"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/numeratorOne"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="21dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintEnd_toStartOf="@id/numeratorTwo"
+        app:layout_constraintTop_toBottomOf="@id/titleBeatsPerMeasure"
+        tools:text="1" />
+
+    <TextView
+        android:id="@+id/numeratorTwo"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="21dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/bar"
+        app:layout_constraintTop_toTopOf="@+id/numeratorOne"
+        tools:text="6" />
+
+    <TextView
+        android:id="@+id/bar"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="21dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toStartOf="@id/denominator"
+        app:layout_constraintTop_toTopOf="@+id/numeratorOne"
+        android:text="@string/bar" />
+
+    <TextView
+        android:id="@+id/denominator"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="21dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="@id/titleBeatsPerMeasure"
+        app:layout_constraintTop_toTopOf="@id/numeratorOne"
+        tools:text="4" />
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
