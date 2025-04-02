@@ -1,41 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
 
-    <item
-        android:width="70dp"
-        android:height="20dp">
-        <shape android:shape="rectangle">
-            <corners
-                android:topLeftRadius="8dp"
-                android:topRightRadius="8dp" />
-            <stroke
-                android:width="2dp"
-                android:color="#000000" />
-        </shape>
-    </item>
+    <path
+        android:pathData="
+        M 50,8
+        A 42,42 0 1,1 50,92
+        A 42,42 0 1,1 50,8
+        Z"
+        android:strokeWidth="7"
+        android:strokeColor="@color/beat_default_color" />
 
-    <item
-        android:width="70dp"
-        android:height="20dp"
-        android:top="25dp">
-        <shape android:shape="rectangle">
-            <stroke
-                android:width="2dp"
-                android:color="#000000" />
-        </shape>
-    </item>
+    <path
+        android:fillColor="@color/beat_default_color"
+        android:pathData="
+        M 50,54
+        L 86.6,77
+        A 44.2,42 0 0,1 13.4,77
+        L 50,54 Z" />
 
-    <item
-        android:width="70dp"
-        android:height="20dp"
-        android:top="50dp">
-        <shape android:shape="rectangle">
-            <corners
-                android:bottomLeftRadius="8dp"
-                android:bottomRightRadius="8dp" />
-            <solid
-                android:color="#000000" />
-        </shape>
-    </item>
-
-</layer-list>
+</vector>

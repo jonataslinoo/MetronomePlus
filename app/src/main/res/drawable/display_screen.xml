@@ -6,19 +6,19 @@
     android:viewportHeight="@dimen/drawable_viewport_400">
 
     <!-- Drawable size for preview -->
-    <item>
-        <shape android:shape="rectangle">
-            <size
-                android:width="400dp"
-                android:height="200dp" />
-        </shape>
-    </item>
+<!--    <item>-->
+<!--        <shape android:shape="rectangle">-->
+<!--            <size-->
+<!--                android:width="400dp"-->
+<!--                android:height="200dp" />-->
+<!--        </shape>-->
+<!--    </item>-->
 
     <!-- black background -->
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="8dp" />
-            <solid android:color="#000000" />
+            <solid android:color="@color/black_border_display_screen" />
         </shape>
     </item>
 
@@ -29,9 +29,9 @@
             <corners android:radius="8dp"/>
             <gradient
                 android:angle="90"
-                android:endColor="#000000"
-                android:centerColor="#000000"
-                android:startColor="#7F7A7A7A"
+                android:endColor="@color/black_border_display_screen"
+                android:centerColor="@color/black_border_display_screen"
+                android:startColor="@color/gray_bottom_border_display_screen"
                 android:type="linear" />
         </shape>
     </item>
@@ -43,7 +43,7 @@
         android:top="5.5dp">
         <shape android:shape="rectangle">
             <corners android:radius="8dp" />
-            <solid android:color="#000000" />
+            <solid android:color="@color/black_border_display_screen" />
         </shape>
     </item>
 
@@ -56,9 +56,9 @@
         <shape android:shape="rectangle">
             <stroke
                 android:width="0.5dp"
-                android:color="#7FFFFFFF" />
+                android:color="@color/gray_top_border_display_screen" />
             <corners android:radius="6dp"/>
-            <solid android:color="#000000" />
+            <solid android:color="@color/black_border_display_screen" />
         </shape>
     </item>
 
@@ -71,7 +71,7 @@
         <shape android:shape="rectangle">
             <corners android:radius="8dp"
                 android:bottomLeftRadius="2dp"/>
-            <solid android:color="#000000" />
+            <solid android:color="@color/black_border_display_screen" />
         </shape>
     </item>
 
@@ -83,22 +83,22 @@
         android:top="5.5dp">
         <shape android:shape="rectangle">
             <corners android:radius="6dp" />
-            <solid android:color="#141414" />
+            <solid android:color="@color/gray_display_screen" />
         </shape>
     </item>
 
-    <!-- Screen red -->
+    <!-- Screen color -->
     <item
         android:bottom="15dp"
-        android:end="25dp"
-        android:left="25dp"
+        android:end="10dp"
+        android:left="10dp"
         android:top="15dp">
         <shape android:shape="rectangle">
             <stroke
                 android:width="1dp"
-                android:color="#7F0D0D0D" />
+                android:color="#BF0D0D0D" />
             <corners android:radius="4dp" />
-            <solid android:color="#1D1010" />
+            <solid android:color="@color/display_screen_color" />
         </shape>
     </item>
 

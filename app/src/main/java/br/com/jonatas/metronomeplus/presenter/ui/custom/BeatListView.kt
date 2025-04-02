@@ -51,7 +51,11 @@ class BeatListView @JvmOverloads constructor(
         if (newBpm != bpm) {
             bpm = newBpm
 
-            intervalBeat = (60_000 / bpm / 3).toLong().coerceAtLeast(1)
+            intervalBeat = if (bpm >= 250) {
+                (60_000 / bpm / 2).toLong().coerceAtLeast(1)
+            } else {
+                (60_000 / bpm / 3).toLong().coerceAtLeast(1)
+            }
         }
     }
 
@@ -80,6 +84,7 @@ class BeatListView @JvmOverloads constructor(
     }
 
     private suspend fun removeHighlight() {
+        if (highlightedBeatIndex >= beatsUi.size) return
         val beatUi = beatsUi[highlightedBeatIndex]
         val normalDrawable = getStateUiDrawable(
             context = context,
@@ -95,8 +100,13 @@ class BeatListView @JvmOverloads constructor(
         val imageView = ImageView(context).apply {
             setImageDrawable(getStateUiDrawable(context, beatUiModel))
 
-            layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1f).apply {
-                setMargins(4, 4, 4, 4)
+            layoutParams = LayoutParams(0, LayoutParams.WRAP_CONTENT, 1.0f).apply {
+
+                if (beatsUi.size > 12) {
+                    setMargins(2, 0, 2, 0)
+                } else {
+                    setMargins(4, 0, 4, 0)
+                }
             }
 
             setOnClickListener {
