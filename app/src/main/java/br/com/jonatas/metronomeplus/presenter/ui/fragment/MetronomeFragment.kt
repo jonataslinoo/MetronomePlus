@@ -23,6 +23,7 @@ import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounterImpl
 import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCaseImpl
+import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCaseImpl
 import br.com.jonatas.metronomeplus.presenter.ui.custom.OnBeatClickListener
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
@@ -105,6 +106,7 @@ class MetronomeFragment : Fragment() {
         val getMeasureUseCase = GetMeasureUseCaseImpl(measureRepositoryImpl)
         val increaseBpmUseCase = IncreaseBpmUseCaseImpl()
         val decreaseBpmUseCase = DecreaseBpmUseCaseImpl()
+        val setBpmUseCase = SetBpmUseCaseImpl()
         val addBeatUseCase = AddBeatUseCaseImpl()
         val removeBeatUseCase = RemoveBeatUseCaseImpl()
         val togglePlayPauseUseCase = TogglePlayPauseUseCaseImpl()
@@ -114,8 +116,9 @@ class MetronomeFragment : Fragment() {
         val viewModelFactory = MetronomeViewModelFactory(
             metronomeEngine = metronomeEngine,
             getMeasureUseCase = getMeasureUseCase,
-            decreaseBpmUseCase = decreaseBpmUseCase,
             increaseBpmUseCase = increaseBpmUseCase,
+            decreaseBpmUseCase = decreaseBpmUseCase,
+            setBpmUseCase = setBpmUseCase,
             addBeatUseCase = addBeatUseCase,
             removeBeatUseCase = removeBeatUseCase,
             togglePlayPauseUseCase = togglePlayPauseUseCase,

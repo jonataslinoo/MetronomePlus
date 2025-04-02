@@ -14,6 +14,8 @@ import br.com.jonatas.metronomeplus.domain.usecase.IncreaseBpmUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
 import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
@@ -32,6 +34,7 @@ class MetronomeViewModel(
     private val getMeasureUseCase: GetMeasureUseCase,
     private val increaseBpmUseCase: IncreaseBpmUseCase,
     private val decreaseBpmUseCase: DecreaseBpmUseCase,
+    private val setBpmUseCase: SetBpmUseCase,
     private val addBeatUseCase: AddBeatUseCase,
     private val removeBeatUseCase: RemoveBeatUseCase,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
@@ -113,6 +116,20 @@ class MetronomeViewModel(
         }
     }
 
+    fun setBpm(value: Int) {
+        viewModelScope.launch {
+            withState<MetronomeState.Ready> {
+                val setBpmUseCaseImpl = SetBpmUseCaseImpl()
+                val newBpm = setBpmUseCaseImpl(value)
+
+                metronomeEngine.setBpm(newBpm)
+
+                val newMeasure = measure.copy(bpm = newBpm)
+                _uiState.value = copy(measure = newMeasure)
+            }
+        }
+    }
+
     fun addBeat() {
         viewModelScope.launch {
             withState<MetronomeState.Ready> {
@@ -182,6 +199,7 @@ class MetronomeViewModelFactory(
     private val getMeasureUseCase: GetMeasureUseCase,
     private val increaseBpmUseCase: IncreaseBpmUseCase,
     private val decreaseBpmUseCase: DecreaseBpmUseCase,
+    private val setBpmUseCase: SetBpmUseCase,
     private val addBeatUseCase: AddBeatUseCase,
     private val removeBeatUseCase: RemoveBeatUseCase,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
@@ -198,6 +216,7 @@ class MetronomeViewModelFactory(
                 getMeasureUseCase = getMeasureUseCase,
                 increaseBpmUseCase = increaseBpmUseCase,
                 decreaseBpmUseCase = decreaseBpmUseCase,
+                setBpmUseCase = setBpmUseCase,
                 addBeatUseCase = addBeatUseCase,
                 removeBeatUseCase = removeBeatUseCase,
                 togglePlayPauseUseCase = togglePlayPauseUseCase,
