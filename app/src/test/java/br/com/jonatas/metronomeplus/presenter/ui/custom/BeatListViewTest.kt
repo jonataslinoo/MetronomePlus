@@ -40,14 +40,15 @@ class BeatListViewTest {
     }
 
     @Test
-    fun `should load each ImageView with the correct LayoutParams when it receives beats`() {
+    fun `should load each ImageView with the correct LayoutParams when it receiving less than twelve beats`() {
         val expectedWidth = 0
         val expectedHeight = LinearLayout.LayoutParams.WRAP_CONTENT
-        val expectedWeight = 1f
-        val expectedMargin = 4
+        val expectedWeight = 1.0f
+        val expectedHorizontalMargin = 4
+        val expectedVerticalMargin = 0
         val beats = listOf(
             BeatUiModel(BeatStateUiModel.Accent),
-            BeatUiModel(BeatStateUiModel.Normal)
+            BeatUiModel(BeatStateUiModel.Normal),
         )
         beatListView.updateBeats(beats)
 
@@ -58,10 +59,10 @@ class BeatListViewTest {
         assertEquals(expectedWidth, layoutParamsChildAccent.width)
         assertEquals(expectedHeight, layoutParamsChildAccent.height)
         assertEquals(expectedWeight, layoutParamsChildAccent.weight)
-        assertEquals(expectedMargin, layoutParamsChildAccent.marginStart)
-        assertEquals(expectedMargin, layoutParamsChildAccent.topMargin)
-        assertEquals(expectedMargin, layoutParamsChildAccent.marginEnd)
-        assertEquals(expectedMargin, layoutParamsChildAccent.bottomMargin)
+        assertEquals(expectedHorizontalMargin, layoutParamsChildAccent.marginStart)
+        assertEquals(expectedHorizontalMargin, layoutParamsChildAccent.marginEnd)
+        assertEquals(expectedVerticalMargin, layoutParamsChildAccent.topMargin)
+        assertEquals(expectedVerticalMargin, layoutParamsChildAccent.bottomMargin)
 
         val childNormal = beatListView.getChildAt(1)
         val layoutParamsChildNormal = childNormal.layoutParams as LinearLayout.LayoutParams
@@ -70,27 +71,52 @@ class BeatListViewTest {
         assertEquals(expectedWidth, layoutParamsChildNormal.width)
         assertEquals(expectedHeight, layoutParamsChildNormal.height)
         assertEquals(expectedWeight, layoutParamsChildNormal.weight)
-        assertEquals(expectedMargin, layoutParamsChildNormal.marginStart)
-        assertEquals(expectedMargin, layoutParamsChildNormal.topMargin)
-        assertEquals(expectedMargin, layoutParamsChildNormal.marginEnd)
-        assertEquals(expectedMargin, layoutParamsChildNormal.bottomMargin)
+        assertEquals(expectedHorizontalMargin, layoutParamsChildNormal.marginStart)
+        assertEquals(expectedHorizontalMargin, layoutParamsChildNormal.marginEnd)
+        assertEquals(expectedVerticalMargin, layoutParamsChildNormal.topMargin)
+        assertEquals(expectedVerticalMargin, layoutParamsChildNormal.bottomMargin)
     }
 
     @Test
-    fun `should update the bpm and calculate interval correctly when it receives a new bpm`() {
-        val bpm = 120
+    fun `should load each ImageView with the correct LayoutParams when it receiving more than twelve beats`() {
+        val expectedWidth = 0
+        val expectedHeight = LinearLayout.LayoutParams.WRAP_CONTENT
+        val expectedWeight = 1.0f
+        val expectedHorizontalMargin = 2
+        val expectedVerticalMargin = 0
+        val beats = listOf(
+            BeatUiModel(BeatStateUiModel.Accent),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Medium),
+            BeatUiModel(BeatStateUiModel.Silence),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Medium),
+            BeatUiModel(BeatStateUiModel.Silence),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Medium),
+            BeatUiModel(BeatStateUiModel.Silence),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Medium),
+            BeatUiModel(BeatStateUiModel.Silence),
+            BeatUiModel(BeatStateUiModel.Normal),
+            BeatUiModel(BeatStateUiModel.Medium),
+            BeatUiModel(BeatStateUiModel.Silence),
+        )
+        beatListView.updateBeats(beats)
 
-        beatListView.updateBpm(bpm)
+        for (index in beats.indices) {
+            val childAccent = beatListView.getChildAt(index)
+            val layoutParamsChildAccent = childAccent.layoutParams as LinearLayout.LayoutParams
 
-        val bpmField = BeatListView::class.java.getDeclaredField("bpm")
-        bpmField.isAccessible = true
-
-        assertEquals(bpm, bpmField.get(beatListView))
-
-        val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
-        intervalBeatField.isAccessible = true
-
-        assertEquals(166L, intervalBeatField.get(beatListView))
+            assertTrue(childAccent is ImageView)
+            assertEquals(expectedWidth, layoutParamsChildAccent.width)
+            assertEquals(expectedHeight, layoutParamsChildAccent.height)
+            assertEquals(expectedWeight, layoutParamsChildAccent.weight)
+            assertEquals(expectedHorizontalMargin, layoutParamsChildAccent.marginStart)
+            assertEquals(expectedHorizontalMargin, layoutParamsChildAccent.marginEnd)
+            assertEquals(expectedVerticalMargin, layoutParamsChildAccent.topMargin)
+            assertEquals(expectedVerticalMargin, layoutParamsChildAccent.bottomMargin)
+        }
     }
 
     @Test
@@ -121,13 +147,30 @@ class BeatListViewTest {
     }
 
     @Test
+    fun `should update the bpm and calculate interval correctly when it receives a new bpm`() {
+        val bpm = 120
+
+        beatListView.updateBpm(bpm)
+
+        val bpmField = BeatListView::class.java.getDeclaredField("bpm")
+        bpmField.isAccessible = true
+
+        assertEquals(bpm, bpmField.get(beatListView))
+
+        val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")
+        intervalBeatField.isAccessible = true
+
+        assertEquals(166L, intervalBeatField.get(beatListView))
+    }
+
+    @Test
     fun `should correctly calculate the intervals when receiving different bpm`() {
         val testCases = mapOf(
             60 to 333L,
             120 to 166L,
-            240 to 83L,
+            250 to 120L,
             20 to 1000L,
-            600 to 33L
+            600 to 50L
         )
 
         val intervalBeatField = BeatListView::class.java.getDeclaredField("intervalBeat")

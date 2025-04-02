@@ -10,9 +10,23 @@
 
     <!-- Colors percent -->
     <color name="black_25_percent">#40000000</color>
-
     <color name="black_40_percent">#66000000</color>
     <color name="white_40_percent">#66FFFFFF</color>
-
     <color name="black_70_percent">#B2000000</color>
+
+    <!-- Colors Metronome Display Screen -->
+    <color name="gray_display_screen">#141414</color>
+    <color name="display_screen_color">#1E1212</color>
+    <color name="black_border_display_screen">#000000</color>
+    <color name="gray_top_border_display_screen">#7FFFFFFF</color>
+    <color name="gray_bottom_border_display_screen">#7F7A7A7A</color>
+
+    <color name="beat_default_color">#8A4141</color>
+    <color name="beat_highlight_color">#00FFFF</color>
+    <color name="beat_disable_color">#757575</color>
+
+    <!--    <color name="display_screen_color">#1e1216</color>-->
+    <!--    <color name="beat_default_color">#8A415E</color>-->
+    <!--    <color name="beat_highlight_color">#41D9FD</color>-->
+    <!--    <color name="beat_disable_color">#353535</color>-->
 </resources>
