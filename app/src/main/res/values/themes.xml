@@ -14,4 +14,19 @@
         <item name="android:background">@drawable/metronome_button_state</item>
     </style>
 
+    <style name="textTitleDisplayStyle">
+        <item name="android:textColor">@color/display_screen_color</item>
+        <item name="android:textSize">@dimen/font_size_title_numbers_display</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:background">@color/beat_default_color</item>
+    </style>
+
+    <style name="textNumberDisplayStyle">
+        <item name="android:fontFamily">@font/ds_digib</item>
+        <item name="android:textSize">48sp</item>
+        <item name="android:textAlignment">textEnd</item>
+        <item name="android:textColor">@color/beat_highlight_color</item>
+    </style>
 </resources>

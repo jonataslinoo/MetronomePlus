@@ -2,4 +2,8 @@
 <resources>
     <dimen name="drawable_dimension_200dp">200dp</dimen>
     <dimen name="drawable_viewport_400">400</dimen>
+
+    <!-- Metronome size style -->
+    <dimen name="font_size_title_numbers_display">16sp</dimen>
+    <dimen name="font_size_numbers_display">48sp</dimen>
 </resources>
