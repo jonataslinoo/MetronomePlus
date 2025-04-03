@@ -6,129 +6,107 @@
     android:layout_height="match_parent"
     tools:context=".presenter.ui.fragment.MetronomeFragment">
 
-    <br.com.jonatas.metronomeplus.presenter.ui.custom.BeatListView
-        android:id="@+id/beatListView"
+    <ImageView
         android:layout_width="0dp"
-        android:layout_height="50dp"
-        android:layout_margin="50dp"
+        android:layout_height="0dp"
+        android:contentDescription="@string/content_description_gray_striped_background_for_metronome"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/background_metal_metronome"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <LinearLayout
+    <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:gravity="center"
-        android:orientation="vertical"
+        android:contentDescription="@string/content_description_overlay_gradient_for_the_metronome_background"
+        android:src="@drawable/overlay_gradient_metronome"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"
-            android:orientation="horizontal">
+    <ImageView
+        android:id="@+id/display"
+        android:layout_width="0dp"
+        android:layout_height="180dp"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginTop="48dp"
+        android:contentDescription="@string/content_description_display_screen_of_beats"
+        android:src="@drawable/display_screen"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-            <Button
-                android:id="@+id/btnMinusThen"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="20"
-                android:text="-10" />
+    <include
+        android:id="@+id/viewBpmItem"
+        layout="@layout/view_bpm_item"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="32dp"
+        app:layout_constraintStart_toStartOf="@+id/display"
+        app:layout_constraintTop_toTopOf="@+id/display" />
 
-            <Button
-                android:id="@+id/btnMinusOne"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="20"
-                android:text="-1" />
+    <include
+        android:id="@+id/viewTimeSignatureItem"
+        layout="@layout/view_time_signature_item"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="24dp"
+        app:layout_constraintEnd_toEndOf="@+id/display"
+        app:layout_constraintTop_toTopOf="@+id/display" />
 
-            <TextView
-                android:id="@+id/tvBpm"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="20"
-                android:text="120"
-                android:textAlignment="center"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+    <br.com.jonatas.metronomeplus.presenter.ui.custom.BeatListView
+        android:id="@+id/beatListView"
+        android:layout_width="0dp"
+        android:layout_height="50dp"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginVertical="24dp"
+        android:gravity="start"
+        app:layout_constraintBottom_toBottomOf="@+id/display"
+        app:layout_constraintEnd_toEndOf="@+id/display"
+        app:layout_constraintStart_toStartOf="@+id/display"
+        tools:background="@color/black_25_percent" />
 
-            <Button
-                android:id="@+id/btnMoreOne"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="20"
-                android:text="+1" />
+    <br.com.jonatas.metronomeplus.presenter.ui.custom.CircularSeekBar
+        android:id="@+id/circularSeekBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="150dp"
+        app:enabled="true"
+        app:knobBackgroundDrawable="@mipmap/knob_background"
+        app:knobRotaryDrawable="@mipmap/knob_rotary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:maxValue="600"
+        app:minValue="20"
+        app:speedMultiplier="0.3"
+        app:value="120" />
 
-            <Button
-                android:id="@+id/btnMoreThen"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="20"
-                android:text="+10" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnPlayPause"
+        style="@style/defaultButtonStyle"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="46dp"
+        android:drawableStart="@drawable/ic_play_white"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        app:layout_constraintStart_toEndOf="@id/circularSeekBar"
+        app:layout_constraintTop_toTopOf="@id/circularSeekBar" />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginHorizontal="8dp"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="5dp"
-                    android:layout_weight="40" />
-
-                <TextView
-                    android:id="@+id/beatCounter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="20"
-                    android:inputType="number"
-                    android:text="4"
-                    android:textAlignment="center"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
-
-                <Button
-                    android:id="@+id/btnMinusOneBeat"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="20"
-                    android:text="-1" />
-
-                <Button
-                    android:id="@+id/btnMoreOneBeat"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="20"
-                    android:text="+1" />
-
-            </LinearLayout>
-
-            <Button
-                android:id="@+id/btnPlayPause"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Play" />
-
-        </LinearLayout>
-
-    </LinearLayout>
+    <include
+        android:id="@+id/viewTimeSignatureButtonItem"
+        layout="@layout/view_time_signature_button_item"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="@id/btnPlayPause"
+        app:layout_constraintTop_toBottomOf="@id/btnPlayPause" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

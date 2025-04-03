@@ -5,11 +5,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources.getDrawable
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.data.engine.MetronomeEngineImpl
 import br.com.jonatas.metronomeplus.data.provider.AssetProviderImpl
 import br.com.jonatas.metronomeplus.data.provider.AudioSettingProviderImpl
@@ -25,7 +27,10 @@ import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCaseImpl
+import br.com.jonatas.metronomeplus.presenter.util.setHighlightDrawableOnTouchListener
 import br.com.jonatas.metronomeplus.presenter.ui.custom.OnBeatClickListener
+import br.com.jonatas.metronomeplus.presenter.ui.custom.OnCircularSeekBarChangeListener
+import br.com.jonatas.metronomeplus.presenter.util.AngularVelocityTrackerImpl
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModel
 import br.com.jonatas.metronomeplus.presenter.viewmodel.MetronomeViewModelFactory
 import kotlinx.coroutines.launch
@@ -52,7 +57,7 @@ class MetronomeFragment : Fragment() {
         setupViewModel()
         setupObserverUiState()
         setupObserverMeasureProgressUiState()
-        setupClickListener()
+        setupInitializationAndListeners()
     }
 
     private fun setupObserverUiState() {
@@ -65,20 +70,11 @@ class MetronomeFragment : Fragment() {
                         }
 
                         is MetronomeViewModel.MetronomeState.Ready -> {
-                            binding.apply {
-                                val measureUi = uiState.measure
-                                btnPlayPause.text = if (measureUi.isPlaying) "Pause" else "Play"
-                                tvBpm.text = measureUi.bpm.toString()
-                                beatCounter.text = measureUi.beats.size.toString()
-
-                                beatListView.updateBeats(measureUi.beats)
-                                beatListView.updateBpm(measureUi.bpm)
-                            }
+                            setUiStateReady(uiState)
                         }
 
                         is MetronomeViewModel.MetronomeState.Error -> {
-                            Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT)
-                                .show()
+                            setUiStateError(uiState)
                         }
                     }
                 }
@@ -129,19 +125,94 @@ class MetronomeFragment : Fragment() {
         viewModel = ViewModelProvider(this, viewModelFactory)[MetronomeViewModel::class.java]
     }
 
-    private fun setupClickListener() {
-        binding.btnPlayPause.setOnClickListener { viewModel.togglePlayPause() }
-        binding.btnMoreOne.setOnClickListener { viewModel.increaseBpm(1) }
-        binding.btnMoreThen.setOnClickListener { viewModel.increaseBpm(10) }
-        binding.btnMinusOne.setOnClickListener { viewModel.decreaseBpm(1) }
-        binding.btnMinusThen.setOnClickListener { viewModel.decreaseBpm(10) }
-        binding.btnMoreOneBeat.setOnClickListener { viewModel.addBeat() }
-        binding.btnMinusOneBeat.setOnClickListener { viewModel.removeBeat() }
-        binding.beatListView.setOnBeatClickListener(object : OnBeatClickListener {
-            override fun onBeatClick(index: Int) {
-                viewModel.changeBeatState(index)
+    private fun setupInitializationAndListeners() {
+        with(binding) {
+            btnPlayPause.setOnClickListener { viewModel.togglePlayPause() }
+
+            beatListView.setOnBeatClickListener(object : OnBeatClickListener {
+                override fun onBeatClick(index: Int) {
+                    viewModel.changeBeatState(index)
+                }
+            })
+
+            circularSeekBar.apply {
+                createAngularVelocityTracker(AngularVelocityTrackerImpl())
+
+                setOnCircularSeekBarChangeListener(object : OnCircularSeekBarChangeListener {
+                    override fun onProgressChanged(value: Float) {
+                        viewModel.setBpm(value.toInt())
+                    }
+                })
             }
-        })
+
+            viewTimeSignatureButtonItem.run {
+                btnLessTimeSig.apply {
+                    setHighlightDrawableOnTouchListener(
+                        newDrawable = getDrawable(requireContext(), R.drawable.ic_remove_highlight),
+                        oldDrawable = getDrawable(requireContext(), R.drawable.ic_remove_white)
+                    ) { viewModel.removeBeat() }
+                }
+                btnMoreTimeSig.apply {
+                    setHighlightDrawableOnTouchListener(
+                        newDrawable = getDrawable(requireContext(), R.drawable.ic_add_highlight),
+                        oldDrawable = getDrawable(requireContext(), R.drawable.ic_add_white)
+                    ) { viewModel.addBeat() }
+                }
+            }
+        }
+    }
+
+    private fun setUiStateReady(uiState: MetronomeViewModel.MetronomeState.Ready) {
+        val measureUi = uiState.measure
+
+        binding.apply {
+            btnPlayPause.apply {
+                val playDrawable = getDrawable(requireContext(), R.drawable.ic_play_white)
+                val pauseDrawable = getDrawable(requireContext(), R.drawable.ic_pause_highlight)
+
+                if (measureUi.isPlaying) {
+                    background = getDrawable(requireContext(), R.drawable.metronome_button_pressed)
+                    setCompoundDrawablesRelativeWithIntrinsicBounds(
+                        pauseDrawable, null, null, null
+                    )
+                } else {
+                    background = getDrawable(requireContext(), R.drawable.metronome_button)
+                    setCompoundDrawablesRelativeWithIntrinsicBounds(
+                        playDrawable, null, null, null
+                    )
+                }
+            }
+
+            measureUi.bpm.toString().run {
+                viewBpmItem.apply {
+                    numberOne.text = getOrNull(0)?.toString() ?: ""
+                    numberTwo.text = getOrNull(1)?.toString() ?: ""
+                    numberThree.text = getOrNull(2)?.toString() ?: ""
+                }
+            }
+
+            viewTimeSignatureItem.apply {
+                measureUi.beats.size.toString().run {
+
+                    if (getOrNull(1) == null) {
+                        numeratorOne.text = ""
+                        numeratorTwo.text = get(0).toString()
+                    } else {
+                        numeratorOne.text = get(0).toString()
+                        numeratorTwo.text = get(1).toString()
+                    }
+                    denominator.text = "4"
+                }
+            }
+
+            beatListView.updateBpm(measureUi.bpm)
+            beatListView.updateBeats(measureUi.beats)
+        }
+    }
+
+    private fun setUiStateError(uiState: MetronomeViewModel.MetronomeState.Error) {
+        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT)
+            .show()
     }
 
     override fun onDestroyView() {
