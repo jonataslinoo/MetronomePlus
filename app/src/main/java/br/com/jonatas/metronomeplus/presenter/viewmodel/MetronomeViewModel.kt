@@ -15,7 +15,6 @@ import br.com.jonatas.metronomeplus.domain.usecase.IncreaseMeasureCounter
 import br.com.jonatas.metronomeplus.domain.usecase.NextBeatStateUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.RemoveBeatUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCase
-import br.com.jonatas.metronomeplus.domain.usecase.SetBpmUseCaseImpl
 import br.com.jonatas.metronomeplus.domain.usecase.TogglePlayPauseUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toDomain
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
@@ -119,8 +118,7 @@ class MetronomeViewModel(
     fun setBpm(value: Int) {
         viewModelScope.launch {
             withState<MetronomeState.Ready> {
-                val setBpmUseCaseImpl = SetBpmUseCaseImpl()
-                val newBpm = setBpmUseCaseImpl(value)
+                val newBpm = setBpmUseCase(value)
 
                 metronomeEngine.setBpm(newBpm)
 
