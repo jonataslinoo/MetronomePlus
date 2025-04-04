@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/metronomeFragment"
+        android:icon="@drawable/bottom_nav_selector_metronome"
+        android:title="@string/menu_bottom_nav_metronome" />
+
+    <item
+        android:id="@+id/libraryFragment"
+        android:icon="@drawable/bottom_nav_selector_library"
+        android:title="@string/menu_bottom_nav_library" />
+
+</menu>

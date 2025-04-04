@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/metronomeFragment">
+
+    <fragment
+        android:id="@+id/metronomeFragment"
+        android:name="br.com.jonatas.metronomeplus.presenter.ui.fragment.MetronomeFragment"
+        android:label="@string/nav_label_Metronome"
+        tools:layout="@layout/fragment_metronome" />
+
+    <fragment
+        android:id="@+id/libraryFragment"
+        android:name="br.com.jonatas.metronomeplus.presenter.ui.fragment.LibraryFragment"
+        android:label="@string/nav_label_library"
+        tools:layout="@layout/fragment_library" />
+
+</navigation>
