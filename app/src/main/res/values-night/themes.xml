@@ -25,4 +25,10 @@
         <item name="android:textAlignment">textEnd</item>
         <item name="android:textColor">@color/beat_highlight_color</item>
     </style>
+
+    <style name="bottomNavigationStyle" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="android:background">@drawable/bottom_nav_background</item>
+        <item name="itemIconTint">@color/white</item>
+        <item name="itemTextColor">@color/selector_text_color_bottom_nav</item>
+    </style>
 </resources>
