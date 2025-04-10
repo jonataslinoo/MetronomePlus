@@ -12,8 +12,14 @@
     <string name="content_description_display_screen_of_beats">Display screen of beats</string>
     <string name="content_description_overlay_gradient_for_the_metronome_background">Overlay gradient for the metronome background</string>
     <string name="content_description_gray_striped_background_for_metronome">Gray striped background for metronome</string>
+
+    <!-- Bottom Navigation Bar -->
     <string name="menu_bottom_nav_metronome">Metronome</string>
     <string name="menu_bottom_nav_library">Library</string>
     <string name="nav_label_Metronome">Metronome</string>
     <string name="nav_label_library">Library</string>
+
+    <!-- Toolbar titles -->
+    <string name="toolbar_title_library">Library</string>
+
 </resources>
