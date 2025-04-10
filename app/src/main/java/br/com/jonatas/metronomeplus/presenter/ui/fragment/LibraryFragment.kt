@@ -10,7 +10,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import br.com.jonatas.metronomeplus.databinding.FragmentLibraryBinding
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.LibraryFoldersAdapter
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryVieModelFactory
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
@@ -55,7 +58,14 @@ class LibraryFragment : Fragment() {
                         }
 
                         is LibraryViewModel.LibraryState.Ready -> {
-
+                            val libraryAdapter =
+                                LibraryFoldersAdapter(requireContext(), uiState.foldersUi)
+                            val linearLayoutManager =
+                                LinearLayoutManager(requireContext(), VERTICAL, false)
+                            binding.recyclerView.apply {
+                                adapter = libraryAdapter
+                                layoutManager = linearLayoutManager
+                            }
                         }
 
                         is LibraryViewModel.LibraryState.Error -> {
