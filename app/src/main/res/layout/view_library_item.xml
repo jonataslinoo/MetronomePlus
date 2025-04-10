@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/window_background_app"
+    android:paddingHorizontal="16dp">
+
+    <ImageView
+        android:id="@+id/folderImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:contentDescription="@string/content_description_image_of_an_empty_music_folder"
+        android:src="@drawable/ic_folder_empty_white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="12dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAllCaps="true"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toStartOf="@id/menuImage"
+        app:layout_constraintStart_toEndOf="@id/folderImage"
+        app:layout_constraintTop_toTopOf="@id/folderImage"
+        tools:text="Sunday Playlist" />
+
+    <ImageView
+        android:id="@+id/menuImage"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:contentDescription="@string/content_description_file_options_menu"
+        android:src="@drawable/menu_selector_folder_item"
+        app:layout_constraintBottom_toTopOf="@id/updateDate"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/name"
+        app:layout_constraintTop_toTopOf="@id/folderImage" />
+
+    <TextView
+        android:id="@+id/musics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textColor="@color/beat_disable_color"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/folderImage"
+        app:layout_constraintStart_toStartOf="@id/name"
+        tools:text="0 Music" />
+
+    <TextView
+        android:id="@+id/updateDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/beat_disable_color"
+        android:textSize="14sp"
+        app:layout_constraintBottom_toBottomOf="@id/musics"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="Updated: 09/04/2025 13:07" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:layout_marginTop="8dp"
+        android:background="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/folderImage" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

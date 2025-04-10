@@ -12,6 +12,8 @@
     <string name="content_description_display_screen_of_beats">Display screen of beats</string>
     <string name="content_description_overlay_gradient_for_the_metronome_background">Overlay gradient for the metronome background</string>
     <string name="content_description_gray_striped_background_for_metronome">Gray striped background for metronome</string>
+    <string name="content_description_image_of_an_empty_music_folder">Image of an empty music folder.</string>
+    <string name="content_description_file_options_menu">File options menu.</string>
 
     <!-- Bottom Navigation Bar -->
     <string name="menu_bottom_nav_metronome">Metronome</string>
@@ -22,4 +24,9 @@
     <!-- Toolbar titles -->
     <string name="toolbar_title_library">Library</string>
 
+    <!-- Plurals -->
+    <plurals name="music_count">
+        <item quantity="one">%d Music</item>
+        <item quantity="other">%d Musics</item>
+    </plurals>
 </resources>
