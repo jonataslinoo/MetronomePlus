@@ -15,7 +15,9 @@
     <color name="white_40_percent">#66FFFFFF</color>
     <color name="black_70_percent">#B2000000</color>
 
-    <!-- Bottom Navigation bar colors -->
+    <!-- Bottom Navigation bar / toolbar colors -->
+    <color name="toolbar_bar_center_color">#88000000</color>
+    <color name="toolbar_bar_end_color">#CC000000</color>
     <color name="bottom_nav_bar_center_color">#80000000</color>
     <color name="bottom_nav_bar_end_color">#CB000000</color>
 
