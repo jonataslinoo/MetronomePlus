@@ -20,6 +20,15 @@
         app:navGraph="@navigation/nav_graph"
         tools:layout="@layout/fragment_metronome" />
 
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="6dp"
+        android:layout_marginBottom="-1dp"
+        android:background="@drawable/bottom_nav_shadow_gradient"
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigationView"
+        app:layout_constraintEnd_toEndOf="@id/bottomNavigationView"
+        app:layout_constraintStart_toStartOf="@id/bottomNavigationView" />
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
         style="@style/bottomNavigationStyle"

@@ -9,15 +9,15 @@
     <color name="overlay_disabled_button_metronome">#7F505050</color>
 
     <!-- Colors percent -->
+    <color name="colorTransparent">#00000000</color>
     <color name="black_25_percent">#40000000</color>
     <color name="black_40_percent">#66000000</color>
     <color name="white_40_percent">#66FFFFFF</color>
     <color name="black_70_percent">#B2000000</color>
 
     <!-- Bottom Navigation bar colors -->
-    <color name="bottom_nav_bar_start_color">#161616</color>
-    <color name="bottom_nav_bar_center_color">#101010</color>
-    <color name="bottom_nav_bar_end_color">#000000</color>
+    <color name="bottom_nav_bar_center_color">#80000000</color>
+    <color name="bottom_nav_bar_end_color">#CB000000</color>
 
     <!-- Colors Metronome Display Screen -->
     <color name="gray_display_screen">#141414</color>
@@ -29,6 +29,8 @@
     <color name="beat_default_color">#8A4141</color>
     <color name="beat_highlight_color">#00FFFF</color>
     <color name="beat_disable_color">#757575</color>
+
+    <color name="window_background_app">#1B1B1B</color>
 
     <!--    <color name="display_screen_color">#1e1216</color>-->
     <!--    <color name="beat_default_color">#8A415E</color>-->
