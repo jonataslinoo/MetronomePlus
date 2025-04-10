@@ -3,6 +3,7 @@
     <style name="Base.Theme.MetronomePlus" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@android:color/black</item>
+        <item name="android:windowBackground">@color/window_background_app</item>
     </style>
 
     <style name="Theme.MetronomePlus" parent="Base.Theme.MetronomePlus" />
@@ -29,8 +30,9 @@
     </style>
 
     <style name="bottomNavigationStyle" parent="Widget.MaterialComponents.BottomNavigationView">
-        <item name="android:background">@drawable/bottom_nav_background</item>
+        <item name="android:background">@color/window_background_app</item>
         <item name="itemIconTint">@color/white</item>
         <item name="itemTextColor">@color/selector_text_color_bottom_nav</item>
+        <item name="itemRippleColor">@color/beat_highlight_color</item>
     </style>
 </resources>
