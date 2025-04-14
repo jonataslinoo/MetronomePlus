@@ -14,6 +14,7 @@
     <string name="content_description_gray_striped_background_for_metronome">Gray striped background for metronome</string>
     <string name="content_description_image_of_an_empty_music_folder">Image of an empty music folder.</string>
     <string name="content_description_file_options_menu">File options menu.</string>
+    <string name="content_description_metronome_plus_logo_with_an_eighth_note_in_the_middle">Metronome Plus logo with an eighth note in the middle.</string>
 
     <!-- Texts -->
     <string name="metronome">Metronome</string>
