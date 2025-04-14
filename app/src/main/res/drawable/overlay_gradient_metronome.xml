@@ -4,9 +4,9 @@
         <shape android:shape="rectangle">
             <gradient
                 android:angle="45"
-                android:endColor="#E6999999"
-                android:centerColor="#BF353535"
-                android:startColor="#D9161616"
+                android:endColor="@color/overlay_gradient_metronome_end_color"
+                android:centerColor="@color/overlay_gradient_metronome_center_color"
+                android:startColor="@color/overlay_gradient_metronome_start_color"
                 android:type="linear"/>
         </shape>
     </item>

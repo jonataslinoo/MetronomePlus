@@ -18,6 +18,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <include
+        layout="@layout/view_logo_metronome"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="56dp"
+        app:layout_constraintBottom_toTopOf="@id/circularSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/display" />
+
     <ImageView
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -77,12 +87,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
-        android:layout_marginBottom="150dp"
         app:enabled="true"
         app:knobBackgroundDrawable="@mipmap/knob_background"
         app:knobRotaryDrawable="@mipmap/knob_rotary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.8"
         app:maxValue="600"
         app:minValue="20"
         app:speedMultiplier="0.3"
