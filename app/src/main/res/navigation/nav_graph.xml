@@ -8,13 +8,13 @@
     <fragment
         android:id="@+id/metronomeFragment"
         android:name="br.com.jonatas.metronomeplus.presenter.ui.fragment.MetronomeFragment"
-        android:label="@string/nav_label_Metronome"
+        android:label="@string/metronome"
         tools:layout="@layout/fragment_metronome" />
 
     <fragment
         android:id="@+id/libraryFragment"
         android:name="br.com.jonatas.metronomeplus.presenter.ui.fragment.LibraryFragment"
-        android:label="@string/nav_label_library"
+        android:label="@string/library"
         tools:layout="@layout/fragment_library" />
 
 </navigation>

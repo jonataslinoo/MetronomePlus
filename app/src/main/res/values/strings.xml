@@ -15,14 +15,10 @@
     <string name="content_description_image_of_an_empty_music_folder">Image of an empty music folder.</string>
     <string name="content_description_file_options_menu">File options menu.</string>
 
-    <!-- Bottom Navigation Bar -->
-    <string name="menu_bottom_nav_metronome">Metronome</string>
-    <string name="menu_bottom_nav_library">Library</string>
-    <string name="nav_label_Metronome">Metronome</string>
-    <string name="nav_label_library">Library</string>
-
-    <!-- Toolbar titles -->
-    <string name="toolbar_title_library">Library</string>
+    <!-- Texts -->
+    <string name="metronome">Metronome</string>
+    <string name="library">Library</string>
+    <string name="new_folder">New Folder</string>
 
     <!-- Plurals -->
     <plurals name="music_count">
