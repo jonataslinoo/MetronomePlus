@@ -2,9 +2,15 @@ package br.com.jonatas.metronomeplus.presenter.ui.fragment
 
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
@@ -12,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
+import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.FragmentLibraryBinding
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.LibraryFoldersAdapter
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryVieModelFactory
@@ -37,9 +44,32 @@ class LibraryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupMenu()
         setupViewModel()
         setupObserverUiState()
         setupInitializationAndListeners()
+    }
+
+    private fun setupMenu() {
+        (requireActivity() as? AppCompatActivity)?.setSupportActionBar(binding.toolbar)
+
+        val menuHost = requireActivity() as MenuHost
+        menuHost.addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.library_menu, menu)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+                return when (menuItem.itemId) {
+                    R.id.newFolder -> {
+                        //Open the form to create a new folder
+                        true
+                    }
+
+                    else -> false
+                }
+            }
+        }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
     private fun setupViewModel() {
@@ -87,6 +117,8 @@ class LibraryFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
+
+        (requireActivity() as? AppCompatActivity)?.setSupportActionBar(null)
         _binding = null
     }
 }
