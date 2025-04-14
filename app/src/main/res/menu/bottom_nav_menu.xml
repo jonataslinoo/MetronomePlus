@@ -4,11 +4,11 @@
     <item
         android:id="@+id/metronomeFragment"
         android:icon="@drawable/bottom_nav_selector_metronome"
-        android:title="@string/menu_bottom_nav_metronome" />
+        android:title="@string/metronome" />
 
     <item
         android:id="@+id/libraryFragment"
         android:icon="@drawable/bottom_nav_selector_library"
-        android:title="@string/menu_bottom_nav_library" />
+        android:title="@string/library" />
 
 </menu>

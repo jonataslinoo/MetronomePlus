@@ -35,4 +35,13 @@
         <item name="itemTextColor">@color/selector_text_color_bottom_nav</item>
         <item name="itemRippleColor">@color/beat_highlight_color</item>
     </style>
+
+    <style name="toolbarStyle" parent="Widget.MaterialComponents.Toolbar">
+        <item name="titleTextAppearance">@style/toolbarAppearance</item>
+        <item name="titleTextColor">@color/beat_highlight_color</item>
+    </style>
+
+    <style name="toolbarAppearance">
+        <item name="android:textSize">28sp</item>
+    </style>
 </resources>
