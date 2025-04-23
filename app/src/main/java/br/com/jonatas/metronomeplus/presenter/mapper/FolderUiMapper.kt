@@ -6,6 +6,7 @@ import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
 fun List<Folder>.toUiModelList(): List<FolderUiModel> = map { it.toUiModel() }
 
 fun Folder.toUiModel(): FolderUiModel = FolderUiModel(
+    id = id,
     name = name,
     musics = musics,
     date = date,
