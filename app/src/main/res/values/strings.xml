@@ -21,9 +21,5 @@
     <string name="library">Library</string>
     <string name="new_folder">New Folder</string>
 
-    <!-- Plurals -->
-    <plurals name="music_count">
-        <item quantity="one">%d Music</item>
-        <item quantity="other">%d Musics</item>
-    </plurals>
+    <string name="music_count">{0,choice,0#{0} Music|1#{0} Music|1&lt;{0} Musics}</string>
 </resources>

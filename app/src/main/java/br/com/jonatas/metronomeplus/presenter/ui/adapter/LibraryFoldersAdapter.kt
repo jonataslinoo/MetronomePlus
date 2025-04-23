@@ -1,66 +1,62 @@
 package br.com.jonatas.metronomeplus.presenter.ui.adapter
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import br.com.jonatas.metronomeplus.R
-import br.com.jonatas.metronomeplus.databinding.ViewLibraryItemBinding
+import br.com.jonatas.metronomeplus.databinding.ViewLibraryFoldersItemBinding
+import br.com.jonatas.metronomeplus.presenter.extension.getDateString
+import br.com.jonatas.metronomeplus.presenter.extension.getDrawableResId
+import br.com.jonatas.metronomeplus.presenter.extension.getMusicCountString
+import br.com.jonatas.metronomeplus.presenter.interfaces.OnFolderClickListener
 import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
-import br.com.jonatas.metronomeplus.presenter.util.convertToDateString
 
 class LibraryFoldersAdapter(
-    private val context: Context,
-    private val folders: List<FolderUiModel> = listOf()
-) : RecyclerView.Adapter<LibraryFoldersAdapter.ViewHolder>() {
+    private val onFolderClickListener: OnFolderClickListener? = null
+) : ListAdapter<FolderUiModel, LibraryFoldersAdapter.ViewHolder>(DiffCallback) {
+
+    companion object DiffCallback : DiffUtil.ItemCallback<FolderUiModel>() {
+        override fun areItemsTheSame(oldItem: FolderUiModel, newItem: FolderUiModel): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: FolderUiModel, newItem: FolderUiModel): Boolean {
+            return oldItem == newItem
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val binding = ViewLibraryItemBinding.inflate(LayoutInflater.from(context), parent, false)
+        val binding =
+            ViewLibraryFoldersItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val folderUi = folders[position]
-        holder.bind(folderUi)
+        val folderUi = getItem(position)
+        folderUi?.let {
+            holder.bind(it, onFolderClickListener)
+        }
     }
 
-    override fun getItemCount(): Int {
-        return folders.size
-    }
-
-    inner class ViewHolder(private val binding: ViewLibraryItemBinding) :
+    class ViewHolder(private val binding: ViewLibraryFoldersItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
-        fun bind(folderUiModel: FolderUiModel) {
-            binding.apply {
-                name.text = folderUiModel.name
-                musics.text = context.resources.getQuantityString(
-                    R.plurals.music_count,
-                    folderUiModel.musics,
-                    folderUiModel.musics
-                )
-                updateDate.text = folderUiModel.date.convertToDateString()
-                folderImage.setImageResource(getFolderDrawable(folderUiModel.musics))
+        fun bind(folderUi: FolderUiModel, listener: OnFolderClickListener?) {
+            with(binding) {
+                name.text = folderUi.name
+                musics.text = folderUi.getMusicCountString(binding.root.context)
+                date.text = folderUi.getDateString()
+                folderImage.setImageResource(folderUi.getDrawableResId())
 
-                menuImage.setOnClickListener { }
-            }
-        }
-
-        private fun getFolderDrawable(amountMusics: Int): Int {
-            return when (amountMusics) {
-                0 -> {
-                    R.drawable.ic_folder_empty_white
+                root.setOnClickListener {
+                    listener?.onFolderClicked(folderUi)
                 }
 
-                in 1..3 -> {
-                    R.drawable.ic_folder_file_white
-                }
-
-                else -> {
-                    R.drawable.ic_folder_files_white
+                menuImage.setOnClickListener {
+                    listener?.onFolderOptionsClicked(folderUi, it)
                 }
             }
         }
     }
-
 }
