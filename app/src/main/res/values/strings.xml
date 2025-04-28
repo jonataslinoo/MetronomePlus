@@ -22,4 +22,5 @@
     <string name="new_folder">New Folder</string>
 
     <string name="music_count">{0,choice,0#{0} Music|1#{0} Music|1&lt;{0} Musics}</string>
+    <string name="message_error">Error: %1$s</string>
 </resources>

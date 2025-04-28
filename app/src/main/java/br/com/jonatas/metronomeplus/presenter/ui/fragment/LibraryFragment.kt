@@ -19,7 +19,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import br.com.jonatas.metronomeplus.R
+import br.com.jonatas.metronomeplus.data.repository.FolderRepositoryImpl
+import br.com.jonatas.metronomeplus.data.source.FolderDataSourceImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentLibraryBinding
+import br.com.jonatas.metronomeplus.domain.usecase.library.GetFoldersUseCaseImpl
+import br.com.jonatas.metronomeplus.presenter.interfaces.OnFolderClickListener
+import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.LibraryFoldersAdapter
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryVieModelFactory
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryViewModel
@@ -31,6 +36,7 @@ class LibraryFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var viewModel: LibraryViewModel
+    private lateinit var foldersAdapter: LibraryFoldersAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,13 +50,14 @@ class LibraryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupMenu()
         setupViewModel()
+        setupToolbarMenu()
+        setupRecyclerViewLibraryFolders()
         setupObserverUiState()
         setupInitializationAndListeners()
     }
 
-    private fun setupMenu() {
+    private fun setupToolbarMenu() {
         (requireActivity() as? AppCompatActivity)?.setSupportActionBar(binding.toolbar)
 
         val menuHost = requireActivity() as MenuHost
@@ -62,7 +69,7 @@ class LibraryFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.newFolder -> {
-                        //Open the form to create a new folder
+                        // Open the form to create a new folder
                         true
                     }
 
@@ -73,7 +80,10 @@ class LibraryFragment : Fragment() {
     }
 
     private fun setupViewModel() {
-        val viewModelFactory = LibraryVieModelFactory()
+        val dataSource = FolderDataSourceImpl()
+        val repository = FolderRepositoryImpl(dataSource)
+        val getFoldersUseCase = GetFoldersUseCaseImpl(repository)
+        val viewModelFactory = LibraryVieModelFactory(getFoldersUseCase = getFoldersUseCase)
 
         viewModel = ViewModelProvider(this, viewModelFactory)[LibraryViewModel::class]
     }
@@ -88,14 +98,7 @@ class LibraryFragment : Fragment() {
                         }
 
                         is LibraryViewModel.LibraryState.Ready -> {
-                            val libraryAdapter =
-                                LibraryFoldersAdapter(requireContext(), uiState.foldersUi)
-                            val linearLayoutManager =
-                                LinearLayoutManager(requireContext(), VERTICAL, false)
-                            binding.recyclerView.apply {
-                                adapter = libraryAdapter
-                                layoutManager = linearLayoutManager
-                            }
+                            setUiStateReady(uiState)
                         }
 
                         is LibraryViewModel.LibraryState.Error -> {
@@ -107,12 +110,36 @@ class LibraryFragment : Fragment() {
         }
     }
 
+    private fun setUiStateReady(uiState: LibraryViewModel.LibraryState.Ready) {
+        foldersAdapter.submitList(uiState.foldersUi)
+    }
+
+    private fun setupRecyclerViewLibraryFolders() {
+        foldersAdapter = LibraryFoldersAdapter(object : OnFolderClickListener {
+            override fun onFolderClicked(folderUiModel: FolderUiModel) {
+                // TODO("Not yet implemented")
+            }
+
+            override fun onFolderOptionsClicked(folderUiModel: FolderUiModel, anchorView: View) {
+                // TODO("Not yet implemented")
+            }
+        })
+
+        binding.recyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext(), VERTICAL, false)
+            adapter = foldersAdapter
+        }
+    }
+
+
     private fun setupInitializationAndListeners() {
     }
 
     private fun setUiStateError(uiState: LibraryViewModel.LibraryState.Error) {
-        Toast.makeText(requireContext(), uiState.message, Toast.LENGTH_SHORT)
-            .show()
+        Toast.makeText(
+            requireContext(),
+            getString(R.string.message_error, uiState.message), Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun onDestroy() {

@@ -3,8 +3,7 @@ package br.com.jonatas.metronomeplus.presenter.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import br.com.jonatas.metronomeplus.data.repository.FolderRepositoryImpl
-import br.com.jonatas.metronomeplus.data.source.FolderDataSourceImpl
+import br.com.jonatas.metronomeplus.domain.usecase.library.GetFoldersUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,6 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(
+    private val getFoldersUseCase: GetFoldersUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModel() {
 
@@ -24,7 +24,7 @@ class LibraryViewModel(
     sealed class LibraryState {
         data object Loading : LibraryState()
         data class Ready(val foldersUi: List<FolderUiModel>) : LibraryState()
-        data class Error(val message: String) : LibraryState()
+        data class Error(val message: String?) : LibraryState()
     }
 
     init {
@@ -34,14 +34,11 @@ class LibraryViewModel(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val folderDataSource = FolderDataSourceImpl()
-                val folderRepository = FolderRepositoryImpl(folderDataSource)
-                val folders = folderRepository.getFolders()
-
+                val folders = getFoldersUseCase()
                 _uiState.value = LibraryState.Ready(foldersUi = folders.toUiModelList())
 
             } catch (ex: Exception) {
-                _uiState.value = LibraryState.Error(message = "Error: ${ex.message}")
+                _uiState.value = LibraryState.Error(message = ex.message)
             }
         }
     }
@@ -61,12 +58,13 @@ class LibraryViewModel(
                 currentState.execute()
             }
         } catch (ex: Exception) {
-            _uiState.value = LibraryState.Error(message = "Error: ${ex.message}")
+            _uiState.value = LibraryState.Error(message = ex.message)
         }
     }
 }
 
 class LibraryVieModelFactory(
+    private val getFoldersUseCase: GetFoldersUseCase,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : ViewModelProvider.Factory {
 
@@ -74,6 +72,7 @@ class LibraryVieModelFactory(
         if (modelClass.isAssignableFrom(LibraryViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return LibraryViewModel(
+                getFoldersUseCase = getFoldersUseCase,
                 dispatcher = dispatcher
             ) as T
         }
