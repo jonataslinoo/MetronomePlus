@@ -33,9 +33,12 @@
     <color name="beat_disable_color">#757575</color>
 
     <color name="window_background_app">#1B1B1B</color>
+    <color name="menu_options_background_app">#313131</color>
+
     <color name="overlay_gradient_metronome_start_color">#FF161616</color>
     <color name="overlay_gradient_metronome_center_color">#BF353535</color>
     <color name="overlay_gradient_metronome_end_color">#E6999999</color>
+
 
     <!--    <color name="display_screen_color">#1e1216</color>-->
     <!--    <color name="beat_default_color">#8A415E</color>-->
