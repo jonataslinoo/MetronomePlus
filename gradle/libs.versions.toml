@@ -2,6 +2,7 @@
 #Plugins
 agp = "8.9.0"
 kotlin = "2.0.0"
+navigationSafeArgs = "2.8.9"
 #Core
 coreKtx = "1.14.0-alpha01"
 #Testing
@@ -72,4 +73,5 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+androidx-navigation-safeargs-kotlin = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationSafeArgs" }
 
