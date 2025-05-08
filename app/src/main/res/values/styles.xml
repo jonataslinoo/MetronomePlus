@@ -1,0 +1,26 @@
+<resources>
+    <style name="toolbarStyle">
+        <item name="titleTextAppearance">@style/toolbarAppearance</item>
+        <item name="titleTextColor">@color/beat_highlight_color</item>
+        <item name="android:layout_marginTop">48dp</item>
+        <item name="android:background">@drawable/toolbar_background</item>
+    </style>
+
+    <style name="toolbarAppearance">
+        <item name="android:textSize">28sp</item>
+    </style>
+
+    <style name="textInputLayoutStyle" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="colorPrimary">@color/beat_highlight_color</item>
+        <item name="android:textColorHint">@color/white</item>
+        <item name="counterTextColor">@color/selector_focused_color_highlight</item>
+        <item name="boxStrokeColor">@color/selector_text_input_layout_outlined_stroke_color</item>
+    </style>
+
+    <style name="searchViewStyle">
+        <item name="colorControlNormal">@color/white</item>
+        <item name="android:textColorHint">@color/selector_focused_color_highlight</item>
+        <item name="android:editTextColor">@color/selector_focused_color_highlight</item>
+    </style>
+
+</resources>
