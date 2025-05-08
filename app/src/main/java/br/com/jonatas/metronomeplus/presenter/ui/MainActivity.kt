@@ -1,6 +1,7 @@
 package br.com.jonatas.metronomeplus.presenter.ui
 
 import android.os.Bundle
+import android.view.View
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -39,5 +40,12 @@ class MainActivity : BaseActivity() {
         val navView: BottomNavigationView = binding.bottomNavigationView
         navView.itemIconTintList = null
         navView.setupWithNavController(navController)
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            navView.visibility = when (destination.id) {
+                R.id.folderFormFragment -> View.GONE
+                else -> View.VISIBLE
+            }
+        }
     }
 }
