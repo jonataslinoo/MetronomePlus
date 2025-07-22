@@ -7,7 +7,8 @@ fun Folder.toDto(): FolderDto = FolderDto(
     id = id,
     name = name,
     musics = musics,
-    date = date
+    date = date,
+    isDefault = isDefault
 )
 
 fun List<FolderDto>.toDomainList(): List<Folder> = map { it.toDomain() }
@@ -16,5 +17,6 @@ fun FolderDto.toDomain(): Folder = Folder(
     id = id,
     name = name,
     musics = musics,
-    date = date
+    date = date,
+    isDefault = isDefault
 )

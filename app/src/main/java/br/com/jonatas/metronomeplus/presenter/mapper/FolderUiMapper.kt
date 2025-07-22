@@ -10,4 +10,13 @@ fun Folder.toUiModel(): FolderUiModel = FolderUiModel(
     name = name,
     musics = musics,
     date = date,
+    isDefault = isDefault
+)
+
+fun FolderUiModel.toDomain(): Folder = Folder(
+    id = id,
+    name = name,
+    musics = musics,
+    date = date,
+    isDefault = isDefault
 )
