@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.androidx.navigation.safeargs.kotlin)
+    alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 android {
@@ -66,6 +67,9 @@ android {
 dependencies {
     //Core
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.datastore.preferences.core)
+    implementation(libs.kotlinx.serialization.json)
     //Testing
     testImplementation(libs.androidx.test.core.ktx)
     testImplementation(libs.junit)
