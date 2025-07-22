@@ -5,6 +5,8 @@ import br.com.jonatas.metronomeplus.data.mapper.toDto
 import br.com.jonatas.metronomeplus.domain.model.Folder
 import br.com.jonatas.metronomeplus.domain.repository.FolderRepository
 import br.com.jonatas.metronomeplus.domain.source.FolderDataSource
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class FolderRepositoryImpl(
     private val folderDataSource: FolderDataSource
@@ -18,7 +20,9 @@ class FolderRepositoryImpl(
         folderDataSource.remove(folder.toDto())
     }
 
-    override suspend fun getFolders(): List<Folder> {
-        return folderDataSource.getFolders().toDomainList()
+    override suspend fun getFolders(): Flow<List<Folder>> {
+        return folderDataSource.getFolders().map {
+            it.toDomainList()
+        }
     }
 }
