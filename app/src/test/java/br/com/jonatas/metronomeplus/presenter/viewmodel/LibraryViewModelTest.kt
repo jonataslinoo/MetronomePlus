@@ -10,6 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -74,11 +75,13 @@ class LibraryViewModelTest {
     @Test
     fun `should transition to Ready state when data loading is successful`() =
         runTest(testDispatcher) {
-            val expectedFolders = listOf(
-                Folder(id = "1", name = "Folder", musics = 1, date = 1735689600000),
-                Folder(id = "2", name = "Folder 2", musics = 3, date = 1735689600000),
-                Folder(id = "3", name = "Folder 3", musics = 5, date = 1735689600000),
-                Folder(id = "4", name = "Folder 4", musics = 0, date = 1735689600000),
+            val expectedFolders = flowOf(
+                listOf(
+                    Folder(id = "1", name = "Folder", musics = 1, date = 1735689600000),
+                    Folder(id = "2", name = "Folder 2", musics = 3, date = 1735689600000),
+                    Folder(id = "3", name = "Folder 3", musics = 5, date = 1735689600000),
+                    Folder(id = "4", name = "Folder 4", musics = 0, date = 1735689600000),
+                )
             )
 
             coEvery { mockGetFoldersUseCase() } returns expectedFolders
@@ -88,7 +91,7 @@ class LibraryViewModelTest {
 
             advanceUntilIdle()
             val expectedState =
-                LibraryViewModel.LibraryState.Ready(foldersUi = expectedFolders.toUiModelList())
+                LibraryViewModel.LibraryState.Ready(foldersUi = expectedFolders.first().toUiModelList())
             val stateReady = viewModel.uiState.first()
             assertTrue(stateReady is LibraryViewModel.LibraryState.Ready)
             assertEquals(stateReady, expectedState)

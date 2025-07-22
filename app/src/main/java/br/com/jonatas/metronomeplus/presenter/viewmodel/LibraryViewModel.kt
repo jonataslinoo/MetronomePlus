@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class LibraryViewModel(
@@ -34,8 +35,9 @@ class LibraryViewModel(
     private fun loadData() {
         viewModelScope.launch {
             try {
-                val folders = getFoldersUseCase()
-                _uiState.value = LibraryState.Ready(foldersUi = folders.toUiModelList())
+                getFoldersUseCase().first().let { folders ->
+                    _uiState.value = LibraryState.Ready(foldersUi = folders.toUiModelList())
+                }
 
             } catch (ex: Exception) {
                 _uiState.value = LibraryState.Error(message = ex.message)
