@@ -7,13 +7,14 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.FragmentFolderFormBinding
 import br.com.jonatas.metronomeplus.presenter.extension.showMessage
@@ -22,6 +23,9 @@ class FolderFormFragment : Fragment() {
 
     private var _binding: FragmentFolderFormBinding? = null
     private val binding get() = _binding!!
+
+    private val arguments by navArgs<FolderFormFragmentArgs>()
+    private val folderId: String? by lazy { arguments.id }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -35,8 +39,10 @@ class FolderFormFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        binding.folderName.setText(folderId)
+
         binding.searchView.setOnQueryTextListener(object : OnQueryTextListener,
-            SearchView.OnQueryTextListener {
+            android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return false
             }
@@ -45,6 +51,13 @@ class FolderFormFragment : Fragment() {
                 return false
             }
         })
+
+        setupMenuActionBar()
+        setupBackButton()
+    }
+
+    private fun setupMenuActionBar() {
+        folderId?.let { binding.toolbar.title = getString(R.string.edit_folder) }
 
         (requireActivity() as? AppCompatActivity)?.setSupportActionBar(binding.toolbar)
         val menuHost = requireActivity() as MenuHost
@@ -64,9 +77,11 @@ class FolderFormFragment : Fragment() {
                 }
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
 
+    private fun setupBackButton() {
         binding.toolbar.setNavigationOnClickListener {
-            showMessage(binding.root, "Teste")
+            findNavController().popBackStack()
         }
     }
 
