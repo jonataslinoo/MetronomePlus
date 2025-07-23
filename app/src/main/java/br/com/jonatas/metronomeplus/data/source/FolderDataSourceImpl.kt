@@ -5,6 +5,7 @@ import br.com.jonatas.metronomeplus.data.local.DataStoreManager
 import br.com.jonatas.metronomeplus.data.model.FolderDto
 import br.com.jonatas.metronomeplus.domain.source.FolderDataSource
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import java.util.Date
@@ -17,12 +18,23 @@ class FolderDataSourceImpl(private val dataStoreManager: DataStoreManager) : Fol
     }
 
     override suspend fun save(folderDto: FolderDto) {
+        val currentFolders = getFolders().first().toMutableList()
+
+        val index = currentFolders.indexOfFirst { it.id == folderDto.id }
+        if (index != -1) {
+            currentFolders[index] = folderDto
+        } else {
+            currentFolders.add(folderDto)
+        }
+
+        val jsonString = Json.encodeToString(currentFolders)
+        dataStoreManager.setData(FOLDERS_KEY, jsonString)
     }
 
     override suspend fun remove(folderDto: FolderDto) {
     }
 
-    override suspend fun getFolders(): Flow<List<FolderDto>> {
+    override fun getFolders(): Flow<List<FolderDto>> {
         return dataStoreManager.getData(FOLDERS_KEY).map { jsonStringFound ->
             if (jsonStringFound.isNotEmpty()) {
                 Json.decodeFromString<MutableList<FolderDto>>(jsonStringFound)
