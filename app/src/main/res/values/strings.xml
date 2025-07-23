@@ -24,6 +24,7 @@
     <string name="metronome">Metronome</string>
     <string name="library">Library</string>
     <string name="new_folder">New Folder</string>
+    <string name="edit_folder">Edit Folder</string>
     <string name="folder_name">Folder name</string>
     <string name="save">Save</string>
 

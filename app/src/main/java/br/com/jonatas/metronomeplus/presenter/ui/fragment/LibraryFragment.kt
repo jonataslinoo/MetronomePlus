@@ -16,6 +16,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import br.com.jonatas.metronomeplus.R
@@ -23,9 +24,13 @@ import br.com.jonatas.metronomeplus.data.repository.FolderRepositoryImpl
 import br.com.jonatas.metronomeplus.data.source.FolderDataSourceImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentLibraryBinding
 import br.com.jonatas.metronomeplus.domain.usecase.library.GetFoldersUseCaseImpl
+import br.com.jonatas.metronomeplus.presenter.MyApplication
 import br.com.jonatas.metronomeplus.presenter.interfaces.OnFolderClickListener
+import br.com.jonatas.metronomeplus.presenter.model.FolderMenuActionUiModel
 import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
+import br.com.jonatas.metronomeplus.presenter.model.MenuItemUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.LibraryFoldersAdapter
+import br.com.jonatas.metronomeplus.presenter.ui.custom.CustomPopupOptionsMenu
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryVieModelFactory
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryViewModel
 import kotlinx.coroutines.launch
@@ -50,10 +55,10 @@ class LibraryFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupViewModel()
         setupToolbarMenu()
-        setupRecyclerViewLibraryFolders()
+        setupViewModel()
         setupObserverUiState()
+        setupRecyclerViewLibraryFolders()
         setupInitializationAndListeners()
     }
 
@@ -69,7 +74,7 @@ class LibraryFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 return when (menuItem.itemId) {
                     R.id.newFolder -> {
-                        // Open the form to create a new folder
+                        navigateToTheFolderForm(folderId = null)
                         true
                     }
 
@@ -80,9 +85,10 @@ class LibraryFragment : Fragment() {
     }
 
     private fun setupViewModel() {
-        val dataSource = FolderDataSourceImpl()
-        val repository = FolderRepositoryImpl(dataSource)
-        val getFoldersUseCase = GetFoldersUseCaseImpl(repository)
+        val dataStoreManager = MyApplication.instance.dataStoreManager
+        val dataSource = FolderDataSourceImpl(dataStoreManager = dataStoreManager)
+        val repository = FolderRepositoryImpl(folderDataSource = dataSource)
+        val getFoldersUseCase = GetFoldersUseCaseImpl(repository = repository)
         val viewModelFactory = LibraryVieModelFactory(getFoldersUseCase = getFoldersUseCase)
 
         viewModel = ViewModelProvider(this, viewModelFactory)[LibraryViewModel::class]
@@ -117,11 +123,14 @@ class LibraryFragment : Fragment() {
     private fun setupRecyclerViewLibraryFolders() {
         foldersAdapter = LibraryFoldersAdapter(object : OnFolderClickListener {
             override fun onFolderClicked(folderUiModel: FolderUiModel) {
-                // TODO("Not yet implemented")
+                navigateToTheFolderForm(folderId = folderUiModel.id)
             }
 
             override fun onFolderOptionsClicked(folderUiModel: FolderUiModel, anchorView: View) {
-                // TODO("Not yet implemented")
+                setupSelectableOptionsMenu(
+                    folderUiModel = folderUiModel,
+                    anchorView = anchorView
+                )
             }
         })
 
@@ -131,8 +140,70 @@ class LibraryFragment : Fragment() {
         }
     }
 
+    private fun setupSelectableOptionsMenu(folderUiModel: FolderUiModel, anchorView: View) {
+        val menuItems = returnsMenuItems(folderUiModel)
+
+        CustomPopupOptionsMenu(
+            context = requireContext(),
+            anchorView = anchorView,
+            menuItems = menuItems
+        )
+        { action ->
+
+            when (action) {
+                FolderMenuActionUiModel.LOAD_INTO_METRONOME -> showMessage("Load")
+                FolderMenuActionUiModel.EDIT -> navigateToTheFolderForm(folderId = folderUiModel.id)
+                FolderMenuActionUiModel.DELETE -> showMessage("Delete")
+            }
+        }
+    }
+
+    private fun returnsMenuItems(folderUiModel: FolderUiModel): List<MenuItemUiModel> {
+        return when (folderUiModel.isDefault) {
+            true -> listOf(
+                MenuItemUiModel(
+                    action = FolderMenuActionUiModel.LOAD_INTO_METRONOME,
+                    iconId = R.drawable.ic_load_folder_white,
+                    titleId = R.string.title_load_into_metronome
+                ),
+                MenuItemUiModel(
+                    action = FolderMenuActionUiModel.EDIT,
+                    iconId = R.drawable.ic_edit_folder_white,
+                    titleId = R.string.title_edit_folder
+                )
+            )
+
+            false -> listOf(
+                MenuItemUiModel(
+                    action = FolderMenuActionUiModel.LOAD_INTO_METRONOME,
+                    iconId = R.drawable.ic_load_folder_white,
+                    titleId = R.string.title_load_into_metronome
+                ),
+                MenuItemUiModel(
+                    action = FolderMenuActionUiModel.EDIT,
+                    iconId = R.drawable.ic_edit_folder_white,
+                    titleId = R.string.title_edit_folder
+                ),
+                MenuItemUiModel(
+                    action = FolderMenuActionUiModel.DELETE,
+                    iconId = R.drawable.ic_delete_white,
+                    titleId = R.string.title_delete_folder
+                )
+            )
+        }
+    }
 
     private fun setupInitializationAndListeners() {
+    }
+
+    private fun navigateToTheFolderForm(folderId: String?) {
+        val action =
+            LibraryFragmentDirections.actionLibraryFragmentToFolderFormFragment(id = folderId)
+        findNavController().navigate(action)
+    }
+
+    private fun showMessage(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 
     private fun setUiStateError(uiState: LibraryViewModel.LibraryState.Error) {
