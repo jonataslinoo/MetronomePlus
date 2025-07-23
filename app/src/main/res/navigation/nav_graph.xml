@@ -25,6 +25,14 @@
         android:id="@+id/folderFormFragment"
         android:name="br.com.jonatas.metronomeplus.presenter.ui.fragment.FolderFormFragment"
         android:label="@string/new_folder"
-        tools:layout="@layout/fragment_folder_form" />
+        tools:layout="@layout/fragment_folder_form" >
+        <action
+            android:id="@+id/action_folderFormFragment_to_libraryFragment"
+            app:destination="@id/libraryFragment" />
+        <argument
+            android:name="id"
+            app:argType="string"
+            app:nullable="true" />
+    </fragment>
 
 </navigation>
