@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 class GetFoldersUseCaseImpl(
     private val repository: FolderRepository
 ) : GetFoldersUseCase {
-    override suspend fun invoke(): Flow<List<Folder>> {
+    override fun invoke(): Flow<List<Folder>> {
         return repository.getFolders()
     }
 }
