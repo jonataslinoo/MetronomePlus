@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.domain.usecase.library
+package br.com.jonatas.metronomeplus.domain.usecase.folderform
 
 import br.com.jonatas.metronomeplus.domain.model.Folder
 import br.com.jonatas.metronomeplus.domain.repository.FolderRepository
