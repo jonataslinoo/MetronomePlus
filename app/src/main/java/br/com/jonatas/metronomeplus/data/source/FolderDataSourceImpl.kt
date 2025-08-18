@@ -34,6 +34,15 @@ class FolderDataSourceImpl(private val dataStoreManager: DataStoreManager) : Fol
     override suspend fun remove(folderDto: FolderDto) {
     }
 
+    override suspend fun getFolder(folderId: String): FolderDto? {
+        val foldersDto = dataStoreManager.getData(FOLDERS_KEY).map { jsonString ->
+            Json.decodeFromString<List<FolderDto>>(jsonString)
+        }
+
+        val folderFound = foldersDto.first().find { it.id == folderId }
+        return folderFound
+    }
+
     override fun getFolders(): Flow<List<FolderDto>> {
         return dataStoreManager.getData(FOLDERS_KEY).map { jsonStringFound ->
             if (jsonStringFound.isNotEmpty()) {

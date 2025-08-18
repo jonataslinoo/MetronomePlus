@@ -20,6 +20,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Test
 
 
@@ -163,5 +166,72 @@ class FolderDataSourceImplTest {
 
         verify(exactly = 1) { mockDataStoreManager.getData(FOLDERS_KEY) }
         coVerify(exactly = 1) { mockDataStoreManager.setData(any(), any()) }
+    }
+
+    @Test
+    fun `should return correctly folder when its receives a folder id`() = runTest {
+        val foldersDto = listOf(
+            FolderDto(id = "1", name = "Folder", musics = 1, date = 123L, isDefault = true),
+            FolderDto(id = "2", name = "Folder 2", musics = 3, date = 123L),
+        )
+        val jsonString = Json.encodeToString(foldersDto)
+        every { mockDataStoreManager.getData(FOLDERS_KEY) } returns flowOf(jsonString)
+
+        val actualFolder = folderDataSource.getFolder("1")
+
+        assertNotNull(actualFolder)
+        assertEquals(foldersDto[0], actualFolder)
+        coVerify(exactly = 1) { mockDataStoreManager.getData(FOLDERS_KEY) }
+        coVerify(exactly = 0) { mockDataStoreManager.setData(any(), any()) }
+    }
+
+    @Test
+    fun `should return a null value when its receives an empty folder id`() = runTest {
+        val foldersDto = listOf(
+            FolderDto(id = "1", name = "Folder", musics = 1, date = 123L, isDefault = true),
+            FolderDto(id = "2", name = "Folder 2", musics = 3, date = 123L),
+        )
+        val jsonString = Json.encodeToString(foldersDto)
+        every { mockDataStoreManager.getData(FOLDERS_KEY) } returns flowOf(jsonString)
+
+        val actualFolder = folderDataSource.getFolder("")
+
+        assertNull("Expected folder to be null", actualFolder)
+        coVerify(exactly = 1) { mockDataStoreManager.getData(FOLDERS_KEY) }
+        coVerify(exactly = 0) { mockDataStoreManager.setData(any(), any()) }
+    }
+
+    @Test
+    fun `should return a null value when its receives an invalid folder id`() = runTest {
+        val foldersDto = listOf(
+            FolderDto(id = "1", name = "Folder", musics = 1, date = 123L, isDefault = true),
+            FolderDto(id = "2", name = "Folder 2", musics = 3, date = 123L),
+        )
+        val jsonString = Json.encodeToString(foldersDto)
+        every { mockDataStoreManager.getData(FOLDERS_KEY) } returns flowOf(jsonString)
+
+        val actualFolder = folderDataSource.getFolder("teste")
+
+        assertNull("Expected folder to be null", actualFolder)
+        coVerify(exactly = 1) { mockDataStoreManager.getData(FOLDERS_KEY) }
+        coVerify(exactly = 0) { mockDataStoreManager.setData(any(), any()) }
+    }
+
+    @Test
+    fun `should throw exception when DataStore fails`() = runTest {
+        val expectedMessageError = "DB error"
+        coEvery { mockDataStoreManager.getData(FOLDERS_KEY) } throws RuntimeException(
+            expectedMessageError
+        )
+
+        try {
+            folderDataSource.getFolder("")
+            fail("was supposed to throw an exception but failed")
+        } catch (e: Throwable) {
+            assertTrue(e is RuntimeException)
+            assertEquals(expectedMessageError, e.message)
+        }
+
+        coVerify(exactly = 1) { mockDataStoreManager.getData(FOLDERS_KEY) }
     }
 }
