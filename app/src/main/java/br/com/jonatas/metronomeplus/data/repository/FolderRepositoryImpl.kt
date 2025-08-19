@@ -1,5 +1,6 @@
 package br.com.jonatas.metronomeplus.data.repository
 
+import br.com.jonatas.metronomeplus.data.mapper.toDomain
 import br.com.jonatas.metronomeplus.data.mapper.toDomainList
 import br.com.jonatas.metronomeplus.data.mapper.toDto
 import br.com.jonatas.metronomeplus.domain.model.Folder
@@ -23,6 +24,10 @@ class FolderRepositoryImpl(
 
     override suspend fun remove(folder: Folder) = withContext(dispatcher) {
         folderDataSource.remove(folder.toDto())
+    }
+
+    override suspend fun getFolder(folderId: String): Folder? = withContext(dispatcher) {
+        folderDataSource.getFolder(folderId)?.toDomain()
     }
 
     override fun getFolders(): Flow<List<Folder>> {

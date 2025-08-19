@@ -1,5 +1,6 @@
 package br.com.jonatas.metronomeplus.data.repository
 
+import br.com.jonatas.metronomeplus.data.mapper.toDomain
 import br.com.jonatas.metronomeplus.data.mapper.toDomainList
 import br.com.jonatas.metronomeplus.data.model.FolderDto
 import br.com.jonatas.metronomeplus.domain.model.Folder
@@ -23,6 +24,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
@@ -164,5 +167,71 @@ class FolderRepositoryImplTest {
 
         coVerify(exactly = 1) { mockFolderDataSource.getFolders() }
         coVerify(exactly = 1) { mockFolderDataSource.save(any()) }
+    }
+
+    @Test
+    fun `should return correctly folder when its receives a folder id`() = runTest {
+        val folderId = "1"
+        val expectedFolderDto = FolderDto(
+            id = "1",
+            name = "Folder",
+            musics = 1,
+            date = 123L,
+            isDefault = true
+        )
+
+        coEvery { mockFolderDataSource.getFolder(folderId) } returns expectedFolderDto
+
+        val actualFolder = folderRepository.getFolder(folderId)
+
+        assertEquals(expectedFolderDto.toDomain(), actualFolder)
+
+        coVerify(exactly = 1) { mockFolderDataSource.getFolder(folderId) }
+    }
+
+    @Test
+    fun `should return a null value when its receives an empty folder id`() = runTest {
+        val folderId = ""
+
+        coEvery { mockFolderDataSource.getFolder(folderId) } returns null
+
+        val actualFolder = folderRepository.getFolder(folderId)
+
+        assertNull("Expected folder to be null", actualFolder)
+
+        coVerify(exactly = 1) { mockFolderDataSource.getFolder(folderId) }
+    }
+
+    @Test
+    fun `should return a null value when its receives an invalid folder id`() = runTest {
+        val folderId = "teste"
+
+        coEvery { mockFolderDataSource.getFolder(folderId) } returns null
+
+        val actualFolder = folderRepository.getFolder(folderId)
+
+        assertNull("Expected folder to be null", actualFolder)
+
+        coVerify(exactly = 1) { mockFolderDataSource.getFolder(folderId) }
+    }
+
+    @Test
+    fun `should throw exception when DataStore fails`() = runTest {
+        val folderId = ""
+        val expectedMessageError = "DB error"
+
+        coEvery { mockFolderDataSource.getFolder(folderId) } throws RuntimeException(
+            expectedMessageError
+        )
+
+        try {
+            folderRepository.getFolder(folderId)
+            fail("was supposed to throw an exception but failed")
+        } catch (e: Throwable) {
+            assertTrue(e is RuntimeException)
+            assertEquals(expectedMessageError, e.message)
+        }
+
+        coVerify(exactly = 1) { mockFolderDataSource.getFolder(folderId) }
     }
 }
