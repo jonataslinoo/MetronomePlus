@@ -11,7 +11,9 @@ import androidx.navigation.ui.setupWithNavController
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.ActivityMainBinding
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : BaseActivity() {
 
     private val binding by lazy {

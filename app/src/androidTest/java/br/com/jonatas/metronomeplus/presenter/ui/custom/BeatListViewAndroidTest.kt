@@ -17,6 +17,8 @@ import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
 import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.MainActivity
 import br.com.jonatas.metronomeplus.presenter.util.CustomViewMatchers.childOfParentAtIndex
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import io.mockk.MockKAnnotations
 import io.mockk.impl.annotations.RelaxedMockK
 import io.mockk.verify
@@ -35,6 +37,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+@HiltAndroidTest
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -42,6 +45,9 @@ class BeatListViewAndroidTest {
 
     @get:Rule
     var activityRule = ActivityScenarioRule(MainActivity::class.java)
+
+    @get:Rule
+    val hiltRule = HiltAndroidRule(this)
 
     @RelaxedMockK
     private lateinit var mockOnBeatClickListener: OnBeatClickListener
@@ -53,6 +59,8 @@ class BeatListViewAndroidTest {
     fun setUp() {
         MockKAnnotations.init(this)
         Dispatchers.setMain(testDispatcher)
+
+        hiltRule.inject()
 
         beatsUi = listOf(
             BeatUiModel(BeatStateUiModel.Normal),
