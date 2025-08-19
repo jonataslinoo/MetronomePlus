@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.androidx.navigation.safeargs.kotlin)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt.android.plugin)
 }
 
 android {
@@ -16,7 +18,7 @@ android {
         versionCode = 1
         versionName = "0.2.0"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "br.com.jonatas.metronomeplus.HiltTestRunner"
         externalNativeBuild {
             cmake {
                 cppFlags += "-std=c++14"
@@ -59,8 +61,15 @@ android {
         }
     }
     packaging {
-        resources.excludes.add("META-INF/LICENSE.md")
-        resources.excludes.add("META-INF/LICENSE-notice.md")
+        resources {
+            excludes.addAll(
+                listOf(
+                    "META-INF/gradle/incremental.annotation.processors",
+                    "META-INF/LICENSE.md",
+                    "META-INF/LICENSE-notice.md",
+                )
+            )
+        }
     }
 }
 
@@ -79,6 +88,8 @@ dependencies {
     testImplementation(libs.mockk.agent)
     testImplementation(libs.mockk.android)
     testImplementation(libs.robolectric)
+    testImplementation(libs.hilt.android.test)
+
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.navigation.testing)
@@ -87,6 +98,7 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.mockk.agent)
     androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.hilt.android.test)
     //UI
     implementation(libs.androidx.activity)
     implementation(libs.androidx.appcompat)
@@ -103,4 +115,7 @@ dependencies {
     //Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    //DI
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
 }

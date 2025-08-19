@@ -4,6 +4,8 @@ agp = "8.9.0"
 kotlin = "2.0.0"
 navigationSafeArgs = "2.8.9"
 kotlinxSerialization = "2.0.0"
+kspVersion = "2.0.0-1.0.24"
+hiltPluginVersion = "2.56.2"
 #Core
 coreKtx = "1.14.0-alpha01"
 datastorePreferences = "1.1.6"
@@ -33,6 +35,8 @@ oboe = "1.9.0"
 lifecycle = "2.8.7"
 #Coroutines
 coroutines = "1.10.1"
+#DI
+hiltVersion = "2.56.2"
 
 [libraries]
 #Core
@@ -54,6 +58,7 @@ mockk-agent = { group = "io.mockk", name = "mockk-agent", version.ref = "mockk" 
 mockk-android = { group = "io.mockk", name = "mockk-android", version.ref = "mockk" }
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+hilt-android-test = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hiltVersion" }
 
 #UI libraries
 androidx-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
@@ -75,9 +80,15 @@ androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifec
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
+#Dependecy Injection components
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hiltVersion" }
+hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hiltVersion" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 androidx-navigation-safeargs-kotlin = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigationSafeArgs" }
 jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinxSerialization" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
+hilt-android-plugin = { id = "com.google.dagger.hilt.android", version.ref = "hiltPluginVersion" }
 
