@@ -1,28 +1,34 @@
 package br.com.jonatas.metronomeplus.data.local
 
-import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
-import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import javax.inject.Inject
 
-private val Context.testDataStore: DataStore<Preferences> by preferencesDataStore(name = "tests_preferences")
-
+@HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
 class DataStoreManagerTest {
 
-    private lateinit var context: Context
-    private lateinit var dataStoreManager: DataStoreManager
+    @get:Rule
+    val hiltRule = HiltAndroidRule(this)
+
+    @Inject
+    lateinit var testDataStore: DataStore<Preferences>
+
+    @Inject
+    lateinit var testDataStoreManager: DataStoreManager
 
     companion object {
         private val TEST_STRING_KEY = stringPreferencesKey("TEST_STRING_KEY")
@@ -31,27 +37,17 @@ class DataStoreManagerTest {
 
     @Before
     fun setup() {
-        context = ApplicationProvider.getApplicationContext()
-
-        dataStoreManager = DataStoreManager.getInstance(context)
+        hiltRule.inject()
     }
 
     @After
     fun tearDown() = runTest {
-        context.testDataStore.edit { it.clear() }
-    }
-
-    @Test
-    fun shouldReturnSameInstanceWhenGetInstanceIsCalled() {
-        val instance1 = DataStoreManager.getInstance(context)
-        val instance2 = DataStoreManager.getInstance(context)
-
-        assertEquals(instance1, instance2)
+        testDataStore.edit { it.clear() }
     }
 
     @Test
     fun shouldReturnEmptyStringWhenGetDataDoesNotFindTheKey() = runTest {
-        val result = dataStoreManager.getData(TEST_WITHOUT_KEY).first()
+        val result = testDataStoreManager.getData(TEST_WITHOUT_KEY).first()
 
         assertEquals("", result)
     }
@@ -60,9 +56,9 @@ class DataStoreManagerTest {
     fun shouldPersistAndReturnValuesWhenCallingSetAndGetData() = runTest {
         val testString = "Hello DataStore Test"
 
-        dataStoreManager.setData(TEST_STRING_KEY, testString)
+        testDataStoreManager.setData(TEST_STRING_KEY, testString)
 
-        val actualString = dataStoreManager.getData(TEST_STRING_KEY).first()
+        val actualString = testDataStoreManager.getData(TEST_STRING_KEY).first()
 
         assertEquals(testString, actualString)
     }
@@ -72,12 +68,12 @@ class DataStoreManagerTest {
         val testString = "Hello DataStore Test"
         val testString2 = "GoodBye DataStore Test"
 
-        dataStoreManager.setData(TEST_STRING_KEY, testString)
-        val actualString = dataStoreManager.getData(TEST_STRING_KEY).first()
+        testDataStoreManager.setData(TEST_STRING_KEY, testString)
+        val actualString = testDataStoreManager.getData(TEST_STRING_KEY).first()
         assertEquals(testString, actualString)
 
-        dataStoreManager.setData(TEST_STRING_KEY, testString2)
-        val actualString2 = dataStoreManager.getData(TEST_STRING_KEY).first()
+        testDataStoreManager.setData(TEST_STRING_KEY, testString2)
+        val actualString2 = testDataStoreManager.getData(TEST_STRING_KEY).first()
         assertEquals(testString2, actualString2)
     }
 }
