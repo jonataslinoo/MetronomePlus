@@ -3,19 +3,21 @@ package br.com.jonatas.metronomeplus.data.repository
 import br.com.jonatas.metronomeplus.data.mapper.toDomain
 import br.com.jonatas.metronomeplus.data.mapper.toDomainList
 import br.com.jonatas.metronomeplus.data.mapper.toDto
+import br.com.jonatas.metronomeplus.di.app.IoDispatcher
 import br.com.jonatas.metronomeplus.domain.model.Folder
 import br.com.jonatas.metronomeplus.domain.repository.FolderRepository
 import br.com.jonatas.metronomeplus.domain.source.FolderDataSource
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class FolderRepositoryImpl(
+class FolderRepositoryImpl @Inject constructor(
     private val folderDataSource: FolderDataSource,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    @IoDispatcher
+    private val dispatcher: CoroutineDispatcher
 ) : FolderRepository {
 
     override suspend fun save(folder: Folder) = withContext(dispatcher) {

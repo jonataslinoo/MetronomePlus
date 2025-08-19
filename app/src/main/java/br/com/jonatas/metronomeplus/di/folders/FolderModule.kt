@@ -5,6 +5,11 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import br.com.jonatas.metronomeplus.data.local.DataStoreManager
+import br.com.jonatas.metronomeplus.data.repository.FolderRepositoryImpl
+import br.com.jonatas.metronomeplus.data.source.FolderDataSourceImpl
+import br.com.jonatas.metronomeplus.domain.repository.FolderRepository
+import br.com.jonatas.metronomeplus.domain.source.FolderDataSource
+import dagger.Binds
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,17 +21,28 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 
 @Module
 @InstallIn(SingletonComponent::class)
-object FolderModule {
+abstract class FolderModule {
 
-    @Provides
+    @Binds
     @Singleton
-    fun providePreferencesDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
-        return context.dataStore
-    }
+    abstract fun bindFolderRepository(folderRepositoryImpl: FolderRepositoryImpl): FolderRepository
 
-    @Provides
+    @Binds
     @Singleton
-    fun provideDataStoreManager(dataStore: DataStore<Preferences>): DataStoreManager {
-        return DataStoreManager(dataStore)
+    abstract fun bindFolderDataSource(folderDataSourceImpl: FolderDataSourceImpl): FolderDataSource
+
+
+    companion object {
+        @Provides
+        @Singleton
+        fun providePreferencesDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+            return context.dataStore
+        }
+
+        @Provides
+        @Singleton
+        fun provideDataStoreManager(dataStore: DataStore<Preferences>): DataStoreManager {
+            return DataStoreManager(dataStore)
+        }
     }
 }

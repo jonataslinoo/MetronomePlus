@@ -9,9 +9,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import java.util.Date
+import javax.inject.Inject
 
-
-class FolderDataSourceImpl(private val dataStoreManager: DataStoreManager) : FolderDataSource {
+class FolderDataSourceImpl @Inject constructor(
+    private val dataStoreManager: DataStoreManager
+) : FolderDataSource {
 
     companion object {
         private val FOLDERS_KEY = stringPreferencesKey("FOLDERS_KEY")
