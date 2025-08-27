@@ -20,11 +20,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView.VERTICAL
 import br.com.jonatas.metronomeplus.R
-import br.com.jonatas.metronomeplus.data.repository.FolderRepositoryImpl
-import br.com.jonatas.metronomeplus.data.source.FolderDataSourceImpl
 import br.com.jonatas.metronomeplus.databinding.FragmentLibraryBinding
+import br.com.jonatas.metronomeplus.domain.repository.FolderRepository
 import br.com.jonatas.metronomeplus.domain.usecase.library.GetFoldersUseCaseImpl
-import br.com.jonatas.metronomeplus.presenter.MyApplication
 import br.com.jonatas.metronomeplus.presenter.interfaces.OnFolderClickListener
 import br.com.jonatas.metronomeplus.presenter.model.FolderMenuActionUiModel
 import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
@@ -33,8 +31,11 @@ import br.com.jonatas.metronomeplus.presenter.ui.adapter.LibraryFoldersAdapter
 import br.com.jonatas.metronomeplus.presenter.ui.custom.CustomPopupOptionsMenu
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryVieModelFactory
 import br.com.jonatas.metronomeplus.presenter.viewmodel.LibraryViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class LibraryFragment : Fragment() {
 
     private var _binding: FragmentLibraryBinding? = null
@@ -42,6 +43,9 @@ class LibraryFragment : Fragment() {
 
     private lateinit var viewModel: LibraryViewModel
     private lateinit var foldersAdapter: LibraryFoldersAdapter
+
+    @Inject
+    lateinit var folderRepository: FolderRepository
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -85,10 +89,7 @@ class LibraryFragment : Fragment() {
     }
 
     private fun setupViewModel() {
-        val dataStoreManager = MyApplication.instance.dataStoreManager
-        val dataSource = FolderDataSourceImpl(dataStoreManager = dataStoreManager)
-        val repository = FolderRepositoryImpl(folderDataSource = dataSource)
-        val getFoldersUseCase = GetFoldersUseCaseImpl(repository = repository)
+        val getFoldersUseCase = GetFoldersUseCaseImpl(repository = folderRepository)
         val viewModelFactory = LibraryVieModelFactory(getFoldersUseCase = getFoldersUseCase)
 
         viewModel = ViewModelProvider(this, viewModelFactory)[LibraryViewModel::class]
