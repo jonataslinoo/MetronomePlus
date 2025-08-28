@@ -146,4 +146,107 @@ class FolderFormViewModelTest {
 
             collectionJob.cancel()
         }
+
+    @Test
+    fun `should set the title to NewFolder and activate edit mode when receiving a invalid folderId`() =
+        runTest {
+            val folderId = null
+            val folder = Folder(id = "", name = "", musics = 0, date = 0L)
+            val expectedFolderFormUiState = FolderFormUiState(
+                folderUi = folder.toUiModel(),
+                isEditMode = true,
+                barTitle = FolderFormTitleMode.NewFolder
+            )
+
+            createViewModel(
+                folderId = folderId,
+                folderToReturn = folder
+            )
+
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue("Expected Ready state", states[1] is UiState.Ready)
+            assertEquals(
+                UiState.Ready<FolderFormUiState>(expectedFolderFormUiState),
+                states[1]
+            )
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `should set the title to ViewFolder and not activate edit mode when receiving a valid folderId`() =
+        runTest {
+            val folderId = "2"
+            val folder = Folder(id = "2", name = "Folder", musics = 2, date = 123L)
+            val expectedFolderFormUiState = FolderFormUiState(
+                folderUi = folder.toUiModel(),
+                isEditMode = false,
+                barTitle = FolderFormTitleMode.ViewFolder
+            )
+
+            createViewModel(
+                folderId = folderId,
+                folderToReturn = folder
+            )
+
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue("Expected Ready state", states[1] is UiState.Ready)
+            assertEquals(
+                UiState.Ready<FolderFormUiState>(expectedFolderFormUiState),
+                states[1]
+            )
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `should set the title to EditFolder and activate edit mode when clicking on the edit menu with a valid folderId`() =
+        runTest {
+            val folderId = "3"
+            val folder = Folder(id = "3", name = "Folder 3", musics = 3, date = 123L)
+            val expectedFolderFormUiState = FolderFormUiState(
+                folderUi = folder.toUiModel(),
+                isEditMode = true,
+                barTitle = FolderFormTitleMode.EditFolder
+            )
+
+            createViewModel(
+                folderId = folderId,
+                folderToReturn = folder
+            )
+
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            viewModel.onEditClicked()
+
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            assertTrue("Expected Ready state", states[1] is UiState.Ready)
+            assertEquals(
+                UiState.Ready<FolderFormUiState>(expectedFolderFormUiState),
+                states[1]
+            )
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+
+            collectionJob.cancel()
+        }
 }
