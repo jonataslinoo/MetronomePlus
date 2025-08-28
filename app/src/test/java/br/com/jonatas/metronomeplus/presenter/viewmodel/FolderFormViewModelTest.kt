@@ -5,7 +5,8 @@ import br.com.jonatas.metronomeplus.MainCoroutineRule
 import br.com.jonatas.metronomeplus.domain.model.Folder
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
-import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
+import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
+import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
 import io.mockk.Called
 import io.mockk.MockKAnnotations
@@ -117,13 +118,18 @@ class FolderFormViewModelTest {
             val folderId = "1"
             val folder =
                 Folder(id = "1", name = "Default", musics = 1, date = 123L, isDefault = true)
+            val expectedFolderFormUiState = FolderFormUiState(
+                folderUi = folder.toUiModel(),
+                isEditMode = false,
+                barTitle = FolderFormTitleMode.ViewFolder
+            )
 
             createViewModel(
                 folderId = folderId,
                 folderToReturn = folder
             )
 
-            val states = mutableListOf<UiState<FolderUiModel>>()
+            val states = mutableListOf<UiState<FolderFormUiState>>()
             val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
                 viewModel.uiState.toList(states)
             }
@@ -132,7 +138,7 @@ class FolderFormViewModelTest {
             assertTrue("Expected Loading state", states[0] is UiState.Loading)
             assertTrue("Expected Ready state", states[1] is UiState.Ready)
             assertEquals(
-                UiState.Ready<FolderUiModel>(result = folder.toUiModel()),
+                UiState.Ready<FolderFormUiState>(result = expectedFolderFormUiState),
                 states[1]
             )
 

@@ -7,4 +7,10 @@
         android:icon="@drawable/ic_done_highlight"
         android:title="@string/save"
         app:showAsAction="always" />
+
+    <item
+        android:id="@+id/editFolder"
+        android:icon="@drawable/ic_edit_folder_highlight"
+        android:title="@string/save"
+        app:showAsAction="always" />
 </menu>
