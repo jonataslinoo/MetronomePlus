@@ -9,6 +9,8 @@ import br.com.jonatas.metronomeplus.data.repository.FolderRepositoryImpl
 import br.com.jonatas.metronomeplus.data.source.FolderDataSourceImpl
 import br.com.jonatas.metronomeplus.domain.repository.FolderRepository
 import br.com.jonatas.metronomeplus.domain.source.FolderDataSource
+import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCaseImpl
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -23,6 +25,11 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
 @InstallIn(SingletonComponent::class)
 abstract class FolderModule {
 
+    /* FolderForm */
+    @Binds
+    abstract fun bindGetFolderUseCase(getFolderUseCaseImpl: GetFolderUseCaseImpl): GetFolderUseCase
+
+    /* Data */
     @Binds
     @Singleton
     abstract fun bindFolderRepository(folderRepositoryImpl: FolderRepositoryImpl): FolderRepository
@@ -30,7 +37,6 @@ abstract class FolderModule {
     @Binds
     @Singleton
     abstract fun bindFolderDataSource(folderDataSourceImpl: FolderDataSourceImpl): FolderDataSource
-
 
     companion object {
         @Provides

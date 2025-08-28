@@ -12,20 +12,27 @@ import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.FragmentFolderFormBinding
 import br.com.jonatas.metronomeplus.presenter.extension.showMessage
+import br.com.jonatas.metronomeplus.presenter.model.FolderUiModel
+import br.com.jonatas.metronomeplus.presenter.model.states.UiState
+import br.com.jonatas.metronomeplus.presenter.viewmodel.FolderFormViewModel
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
+@AndroidEntryPoint
 class FolderFormFragment : Fragment() {
 
     private var _binding: FragmentFolderFormBinding? = null
     private val binding get() = _binding!!
 
-    private val arguments by navArgs<FolderFormFragmentArgs>()
-    private val folderId: String? by lazy { arguments.id }
+    private val viewModel: FolderFormViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,8 +46,6 @@ class FolderFormFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.folderName.setText(folderId)
-
         binding.searchView.setOnQueryTextListener(object : OnQueryTextListener,
             android.widget.SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
@@ -52,13 +57,41 @@ class FolderFormFragment : Fragment() {
             }
         })
 
+        setupObserverUiState()
         setupMenuActionBar()
         setupBackButton()
     }
 
-    private fun setupMenuActionBar() {
-        folderId?.let { binding.toolbar.title = getString(R.string.edit_folder) }
+    private fun setupObserverUiState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                viewModel.uiState.collect { uiState ->
+                    when (uiState) {
+                        is UiState.Loading -> {
+                            /*Nothing*/
+                        }
 
+                        is UiState.Ready -> {
+                            setUiStateReady(uiState.result)
+                        }
+
+                        is UiState.Error -> {
+
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setUiStateReady(folderUi: FolderUiModel) {
+        binding.folderName.setText(folderUi.name)
+        if (folderUi.id.isNotEmpty()) {
+            binding.toolbar.title = getString(R.string.edit_folder)
+        }
+    }
+
+    private fun setupMenuActionBar() {
         (requireActivity() as? AppCompatActivity)?.setSupportActionBar(binding.toolbar)
         val menuHost = requireActivity() as MenuHost
         menuHost.addMenuProvider(object : MenuProvider {
