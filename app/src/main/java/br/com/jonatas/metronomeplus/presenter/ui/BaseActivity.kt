@@ -1,6 +1,7 @@
 package br.com.jonatas.metronomeplus.presenter.ui
 
 import android.content.Context
+import android.content.res.Configuration
 import android.util.DisplayMetrics
 import androidx.appcompat.app.AppCompatActivity
 
@@ -17,9 +18,16 @@ open class BaseActivity : AppCompatActivity() {
         val configuration = context.resources.configuration
 
         if (displayMetrics.densityDpi != DisplayMetrics.DENSITY_400) {
-
             configuration.densityDpi = DisplayMetrics.DENSITY_400
+
             newContext = context.createConfigurationContext(configuration)
+        }
+
+        if (configuration.fontScale != 0.8f) {
+            val overrideConfig = Configuration(newContext.resources.configuration)
+            overrideConfig.fontScale = 0.8f
+
+            newContext = newContext.createConfigurationContext(overrideConfig)
         }
 
         return newContext
