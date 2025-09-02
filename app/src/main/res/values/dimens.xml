@@ -6,4 +6,8 @@
     <!-- Metronome size style -->
     <dimen name="font_size_title_numbers_display">16sp</dimen>
     <dimen name="font_size_numbers_display">48sp</dimen>
+
+    <!-- Song view size style -->
+    <dimen name="text_size_song_time_signature_view">24sp</dimen>
+    <dimen name="width_song_time_signature_view">10.5dp</dimen>
 </resources>

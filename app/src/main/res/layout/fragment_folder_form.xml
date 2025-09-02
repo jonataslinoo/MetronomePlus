@@ -56,13 +56,13 @@
         android:iconifiedByDefault="false"
         android:queryHint="@string/hint_search_musics_by_name"
         android:theme="@style/searchViewStyle"
-        app:layout_constraintBottom_toTopOf="@id/recyclerViewMusics"
+        app:layout_constraintBottom_toTopOf="@id/folder_form_songs_recycler_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textInputLayoutName" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewMusics"
+        android:id="@+id/folder_form_songs_recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginHorizontal="16dp"
@@ -71,6 +71,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchView"
         tools:itemCount="5"
-        tools:listitem="@layout/view_library_folders_item" />
+        tools:listitem="@layout/view_folder_form_song_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

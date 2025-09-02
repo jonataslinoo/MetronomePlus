@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/song_sig_numerator_one"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="@dimen/width_song_time_signature_view"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/text_size_song_time_signature_view"
+        app:layout_constraintEnd_toStartOf="@id/song_sig_numerator_two"
+        app:layout_constraintTop_toTopOf="@id/song_sig_denominator"
+        tools:text="1" />
+
+    <TextView
+        android:id="@+id/song_sig_numerator_two"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="@dimen/width_song_time_signature_view"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/text_size_song_time_signature_view"
+        app:layout_constraintEnd_toStartOf="@id/song_sig_bar"
+        app:layout_constraintTop_toTopOf="@+id/song_sig_denominator"
+        tools:text="6" />
+
+    <TextView
+        android:id="@+id/song_sig_bar"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="@dimen/width_song_time_signature_view"
+        android:layout_height="wrap_content"
+        android:text="@string/bar"
+        android:textSize="@dimen/text_size_song_time_signature_view"
+        app:layout_constraintEnd_toStartOf="@id/song_sig_denominator"
+        app:layout_constraintTop_toTopOf="@+id/song_sig_denominator" />
+
+    <TextView
+        android:id="@+id/song_sig_denominator"
+        style="@style/textNumberDisplayStyle"
+        android:layout_width="@dimen/width_song_time_signature_view"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="1dp"
+        android:textSize="@dimen/text_size_song_time_signature_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="4" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

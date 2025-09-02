@@ -17,6 +17,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.FragmentFolderFormBinding
 import br.com.jonatas.metronomeplus.presenter.extension.enabledAllChildren
@@ -24,6 +26,7 @@ import br.com.jonatas.metronomeplus.presenter.extension.showMessage
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.FolderFormSongsAdapter
 import br.com.jonatas.metronomeplus.presenter.viewmodel.FolderFormViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -35,6 +38,7 @@ class FolderFormFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: FolderFormViewModel by viewModels()
+    private lateinit var songsAdapter: FolderFormSongsAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,6 +66,7 @@ class FolderFormFragment : Fragment() {
         setupObserverUiState()
         setupMenuActionBar()
         setupBackButton()
+        setupRecyclerViewSongs()
     }
 
     private fun setupObserverUiState() {
@@ -93,10 +98,23 @@ class FolderFormFragment : Fragment() {
             is FolderFormTitleMode.ViewFolder -> getString(R.string.view_folder)
             is FolderFormTitleMode.EditFolder -> getString(R.string.edit_folder)
         }
+        songsAdapter.submitList(formUiState.songsUi)
 
         setEnabledFields(formUiState.isEditMode)
-
         requireActivity().invalidateMenu()
+    }
+
+    private fun setupRecyclerViewSongs() {
+        songsAdapter = FolderFormSongsAdapter()
+
+        binding.folderFormSongsRecyclerView.apply {
+            layoutManager = LinearLayoutManager(
+                requireContext(),
+                RecyclerView.VERTICAL,
+                false
+            )
+            adapter = songsAdapter
+        }
     }
 
     private fun setEnabledFields(enable: Boolean = false) {

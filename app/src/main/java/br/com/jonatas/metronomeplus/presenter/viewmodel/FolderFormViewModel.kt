@@ -5,8 +5,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
+import br.com.jonatas.metronomeplus.presenter.model.BeatStateUiModel
+import br.com.jonatas.metronomeplus.presenter.model.BeatUiModel
+import br.com.jonatas.metronomeplus.presenter.model.TimeSignatureUiModel
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
+import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +46,8 @@ class FolderFormViewModel @Inject constructor(
         FolderFormUiState(
             folderUi = initialFolder.toUiModel(),
             isEditMode = canEdit,
-            barTitle = barTitle
+            barTitle = barTitle,
+            songsUi = mockSongs()
         )
 
     }.map { completeState ->
@@ -69,5 +74,184 @@ class FolderFormViewModel @Inject constructor(
 
     fun onEditClicked() {
         _isEditMode.value = true
+    }
+
+    private fun mockSongs(): List<SongUiModel> {
+        return listOf(
+            SongUiModel(
+                id = "1",
+                title = "Marcado",
+                artist = "Ronaldo Bezerra",
+                bpm = 75,
+                timeSignature = TimeSignatureUiModel(8, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "3",
+                title = "Aclame ao Senhor/Manancial/A Ele A Gloria/Te Agradeço",
+                artist = "Ministério Sarando A Terra Ferida",
+                bpm = 444,
+                timeSignature = TimeSignatureUiModel(6, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "4",
+                title = "Cruz",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 90,
+                timeSignature = TimeSignatureUiModel(16, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+            SongUiModel(
+                id = "2",
+                title = "Deus do impossível",
+                artist = "Comunidade Evangélica Internacional Da Zona Sul",
+                bpm = 600,
+                timeSignature = TimeSignatureUiModel(4, 4),
+                beatPatterns = listOf(
+                    BeatUiModel(BeatStateUiModel.Accent),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                    BeatUiModel(BeatStateUiModel.Normal),
+                )
+            ),
+        )
     }
 }
