@@ -3,4 +3,7 @@ package br.com.jonatas.metronomeplus.data.model
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BeatDto(val stateDto: BeatStateDto)
+data class TimeSignatureDto(
+    val numerator: Int,
+    val denominator: Int
+)
