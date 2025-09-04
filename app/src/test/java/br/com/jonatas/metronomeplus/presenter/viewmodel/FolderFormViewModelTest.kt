@@ -2,12 +2,17 @@ package br.com.jonatas.metronomeplus.presenter.viewmodel
 
 import androidx.lifecycle.SavedStateHandle
 import br.com.jonatas.metronomeplus.MainCoroutineRule
+import br.com.jonatas.metronomeplus.data.mapper.toDomainList
 import br.com.jonatas.metronomeplus.domain.model.Folder
+import br.com.jonatas.metronomeplus.domain.model.Song
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
+import br.com.jonatas.metronomeplus.domain.usecase.folderform.song.GetSongsByFolderUseCase
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
+import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
+import br.com.jonatas.metronomeplus.util.Fixtures
 import io.mockk.Called
 import io.mockk.MockKAnnotations
 import io.mockk.clearAllMocks
@@ -16,6 +21,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
@@ -40,6 +46,9 @@ class FolderFormViewModelTest {
     @MockK
     private lateinit var mockGetFolderUseCase: GetFolderUseCase
 
+    @MockK
+    private lateinit var mockGetSongsByFolderUseCase: GetSongsByFolderUseCase
+
     private lateinit var viewModel: FolderFormViewModel
 
     @Before
@@ -55,7 +64,8 @@ class FolderFormViewModelTest {
     private fun createViewModel(
         folderId: String? = null,
         folderToReturn: Folder? = null,
-        exceptionToThrow: Exception? = null
+        exceptionToThrow: Exception? = null,
+        songsToReturn: List<Song>? = null,
     ) {
         every { mockSavedStateHandle.get<String>("id") } returns folderId
 
@@ -67,9 +77,14 @@ class FolderFormViewModelTest {
             coEvery { mockGetFolderUseCase(folderId) } returns folderToReturn
         }
 
+        if (songsToReturn != null && folderToReturn != null) {
+            coEvery { mockGetSongsByFolderUseCase(folderToReturn) } returns flowOf(songsToReturn)
+        }
+
         viewModel = FolderFormViewModel(
             savedStateHandle = mockSavedStateHandle,
-            getFolderUseCase = mockGetFolderUseCase
+            getFolderUseCase = mockGetFolderUseCase,
+            getSongsByFolderUseCase = mockGetSongsByFolderUseCase
         )
     }
 
@@ -110,23 +125,26 @@ class FolderFormViewModelTest {
             assertEquals(expectedException.message, errorState.error.message)
 
             coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+            coVerify { mockGetSongsByFolderUseCase wasNot Called }
         }
 
     @Test
     fun `should transition to Ready state when data loading is successful`() =
         runTest {
-            val folderId = "1"
             val folder =
-                Folder(id = "1", name = "Default", musics = 1, date = 123L, isDefault = true)
+                Folder(id = "folder1", name = "Default", musics = 1, date = 123L, isDefault = true)
+            val expectedSongs = Fixtures.mockAllSongsDto().toDomainList()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
                 isEditMode = false,
-                barTitle = FolderFormTitleMode.ViewFolder
+                barTitle = FolderFormTitleMode.ViewFolder,
+                songsUi = expectedSongs.toUiModelList()
             )
 
             createViewModel(
-                folderId = folderId,
-                folderToReturn = folder
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = expectedSongs
             )
 
             val states = mutableListOf<UiState<FolderFormUiState>>()
@@ -142,7 +160,8 @@ class FolderFormViewModelTest {
                 states[1]
             )
 
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
 
             collectionJob.cancel()
         }
@@ -152,15 +171,18 @@ class FolderFormViewModelTest {
         runTest {
             val folderId = null
             val folder = Folder(id = "", name = "", musics = 0, date = 0L)
+            val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
                 isEditMode = true,
-                barTitle = FolderFormTitleMode.NewFolder
+                barTitle = FolderFormTitleMode.NewFolder,
+                songsUi = songs.toUiModelList()
             )
 
             createViewModel(
                 folderId = folderId,
-                folderToReturn = folder
+                folderToReturn = folder,
+                songsToReturn = songs
             )
 
             val states = mutableListOf<UiState<FolderFormUiState>>()
@@ -176,7 +198,8 @@ class FolderFormViewModelTest {
                 states[1]
             )
 
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folderId) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
 
             collectionJob.cancel()
         }
@@ -184,17 +207,19 @@ class FolderFormViewModelTest {
     @Test
     fun `should set the title to ViewFolder and not activate edit mode when receiving a valid folderId`() =
         runTest {
-            val folderId = "2"
-            val folder = Folder(id = "2", name = "Folder", musics = 2, date = 123L)
+            val folder = Folder(id = "folder2", name = "Folder", musics = 2, date = 123L)
+            val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
                 isEditMode = false,
-                barTitle = FolderFormTitleMode.ViewFolder
+                barTitle = FolderFormTitleMode.ViewFolder,
+                songsUi = songs.toUiModelList()
             )
 
             createViewModel(
-                folderId = folderId,
-                folderToReturn = folder
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
             )
 
             val states = mutableListOf<UiState<FolderFormUiState>>()
@@ -209,7 +234,8 @@ class FolderFormViewModelTest {
                 states[1]
             )
 
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
 
             collectionJob.cancel()
         }
@@ -217,17 +243,19 @@ class FolderFormViewModelTest {
     @Test
     fun `should set the title to EditFolder and activate edit mode when clicking on the edit menu with a valid folderId`() =
         runTest {
-            val folderId = "3"
-            val folder = Folder(id = "3", name = "Folder 3", musics = 3, date = 123L)
+            val folder = Folder(id = "folder3", name = "Folder 3", musics = 3, date = 123L)
+            val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
                 isEditMode = true,
-                barTitle = FolderFormTitleMode.EditFolder
+                barTitle = FolderFormTitleMode.EditFolder,
+                songsUi = songs.toUiModelList()
             )
 
             createViewModel(
-                folderId = folderId,
-                folderToReturn = folder
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
             )
 
             val states = mutableListOf<UiState<FolderFormUiState>>()
@@ -245,7 +273,8 @@ class FolderFormViewModelTest {
                 states[1]
             )
 
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
 
             collectionJob.cancel()
         }
