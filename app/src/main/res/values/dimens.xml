@@ -10,4 +10,8 @@
     <!-- Song view size style -->
     <dimen name="text_size_song_time_signature_view">24sp</dimen>
     <dimen name="width_song_time_signature_view">10.5dp</dimen>
+
+    <!-- Alphas -->
+    <item name="alpha_enabled_view" format="float" type="dimen">1.0</item>
+    <item name="alpha_disabled_view" format="float" type="dimen">0.7</item>
 </resources>

@@ -22,6 +22,7 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.FragmentFolderFormBinding
 import br.com.jonatas.metronomeplus.presenter.extension.enabledAllChildren
+import br.com.jonatas.metronomeplus.presenter.extension.setAlphaForState
 import br.com.jonatas.metronomeplus.presenter.extension.showMessage
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
@@ -51,7 +52,7 @@ class FolderFormFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
         setupObserverUiState()
         setupMenuActionBar()
         setupBackButton()
@@ -120,7 +121,12 @@ class FolderFormFragment : Fragment() {
 
     private fun setEnabledFields(enable: Boolean = false) {
         binding.folderName.isEnabled = enable
+        binding.folderName.setAlphaForState(enable)
+        binding.textInputLayoutName.setAlphaForState(enable)
         binding.searchView.enabledAllChildren(enable)
+        binding.searchView.setAlphaForState(enable)
+
+        songsAdapter.isEditingEnabled = enable
     }
 
     private fun setupMenuActionBar() {

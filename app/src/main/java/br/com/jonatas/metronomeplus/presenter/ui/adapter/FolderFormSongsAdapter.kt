@@ -7,12 +7,23 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
 import br.com.jonatas.metronomeplus.presenter.extension.bindNumeratorToViews
+import br.com.jonatas.metronomeplus.presenter.extension.setAlphaForState
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
 
 class FolderFormSongsAdapter() :
     ListAdapter<SongUiModel, FolderFormSongsAdapter.ViewHolder>(DiffCallback) {
 
+    var isEditingEnabled: Boolean = false
+        set(value) {
+            if (field != value) {
+                field = value
+                notifyItemRangeChanged(0, itemCount, PAYLOAD_EDITING_CHANGED)
+            }
+        }
+
     companion object DiffCallback : DiffUtil.ItemCallback<SongUiModel>() {
+        const val PAYLOAD_EDITING_CHANGED = "PAYLOAD_EDITING_CHANGED"
+
         override fun areItemsTheSame(oldItem: SongUiModel, newItem: SongUiModel): Boolean {
             return oldItem.id == newItem.id
         }
@@ -39,7 +50,7 @@ class FolderFormSongsAdapter() :
         }
     }
 
-    class ViewHolder(private val binding: ViewFolderFormSongItemBinding) :
+   inner class ViewHolder(private val binding: ViewFolderFormSongItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(songUi: SongUiModel) {
@@ -57,6 +68,26 @@ class FolderFormSongsAdapter() :
                     songUi.timeSignature.denominator.toString()
 
                 songItemBeatListview.updateBeats(newBeats = songUi.beatPatterns)
+
+                applyEditingState(isEditingEnabled)
+            }
+        }
+
+        private fun applyEditingState(isEditing: Boolean) {
+            binding.apply {
+                root.isEnabled = isEditing
+                songItemOptions.isEnabled = isEditing
+                songItemSelected.isEnabled = isEditing
+
+                songItemTitle.setAlphaForState(isEditing)
+                songItemArtist.setAlphaForState(isEditing)
+                songItemBpm.setAlphaForState(isEditing)
+                songItemViewSignature.songSigNumeratorOne.setAlphaForState(isEditing)
+                songItemViewSignature.songSigNumeratorTwo.setAlphaForState(isEditing)
+                songItemViewSignature.songSigBar.setAlphaForState(isEditing)
+                songItemViewSignature.songSigDenominator.setAlphaForState(isEditing)
+                songItemOptions.setAlphaForState(isEditing)
+                songItemBeatListview.setAlphaForState(isEditing)
             }
         }
     }
