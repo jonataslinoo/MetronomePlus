@@ -278,4 +278,56 @@ class FolderFormViewModelTest {
 
             collectionJob.cancel()
         }
+
+    @Test
+    fun `should filter songs by title or artist when searchSongInfo is called with query data`() =
+        runTest {
+            val songs = Fixtures.mockAllSongsDto().toDomainList()
+            val title = "Atos 2"
+            val artist = "ronaldo"
+            val folder =
+                Folder(id = "folder1", name = "Folder", musics = 5, date = 123L, isDefault = true)
+
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
+            )
+
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val actualSongs = (states[1] as UiState.Ready).result.songsUi
+
+            assertTrue("Expected Ready state", states[1] is UiState.Ready)
+            assertEquals(songs.toUiModelList(), actualSongs)
+
+            viewModel.searchSongInfo(title)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val expectedSongByTitle = songs.first { it.title.contains(title, ignoreCase = true) }
+            val actualSongByTitle = (states[2] as UiState.Ready).result.songsUi.first {
+                it.title.contains(title, ignoreCase = true)
+            }
+            assertEquals(3, states.size)
+            assertEquals(expectedSongByTitle.toUiModel(), actualSongByTitle)
+
+            viewModel.searchSongInfo(artist)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val expectedSongByArtist = songs.first { it.artist.contains(artist, ignoreCase = true) }
+            val actualSongByArtists = (states[3] as UiState.Ready).result.songsUi.first {
+                it.artist.contains(artist, ignoreCase = true)
+            }
+            assertEquals(4, states.size)
+            assertEquals(expectedSongByArtist.toUiModel(), actualSongByArtists)
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+
+            collectionJob.cancel()
+        }
 }

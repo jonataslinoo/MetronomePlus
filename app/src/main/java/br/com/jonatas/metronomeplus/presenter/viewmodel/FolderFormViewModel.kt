@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.song.GetSongsByFolderUseCase
+import br.com.jonatas.metronomeplus.domain.util.filter.filterSongs
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
@@ -27,9 +28,10 @@ import javax.inject.Inject
 class FolderFormViewModel @Inject constructor(
     val savedStateHandle: SavedStateHandle,
     private val getFolderUseCase: GetFolderUseCase,
-    private val getSongsByFolderUseCase: GetSongsByFolderUseCase
+    private val getSongsByFolderUseCase: GetSongsByFolderUseCase,
 ) : ViewModel() {
 
+    private val _searchSongInfo = MutableStateFlow<String>("")
     private val _isEditMode = MutableStateFlow<Boolean>(false)
     private val folderId: String? = savedStateHandle["id"]
 
@@ -42,16 +44,19 @@ class FolderFormViewModel @Inject constructor(
         initialFolderFlow.flatMapLatest { folder ->
             combine(
                 getSongsByFolderUseCase(folder = folder),
-                _isEditMode
-            ) { songs, isEditing ->
+                _searchSongInfo,
+                _isEditMode,
+            ) { songs, query, isEditing ->
 
                 val (canEdit, barTitle) = folderFormUiStateInfo(isEditing)
+
+                val filteredList = songs.filterSongs(query)
 
                 FolderFormUiState(
                     folderUi = folder.toUiModel(),
                     isEditMode = canEdit,
                     barTitle = barTitle,
-                    songsUi = songs.toUiModelList()
+                    songsUi = filteredList.toUiModelList()
                 )
             }
         }.map { completeState ->
@@ -74,6 +79,10 @@ class FolderFormViewModel @Inject constructor(
         } else {
             true to FolderFormTitleMode.NewFolder
         }
+    }
+
+    fun searchSongInfo(query: String) {
+        _searchSongInfo.value = query
     }
 
     fun onEditClicked() {

@@ -51,22 +51,11 @@ class FolderFormFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.searchView.setOnQueryTextListener(object : OnQueryTextListener,
-            android.widget.SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                return false
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return false
-            }
-        })
-
+        
         setupObserverUiState()
         setupMenuActionBar()
         setupBackButton()
-        setupRecyclerViewSongs()
+        setupRecyclerViewAndSearchView()
     }
 
     private fun setupObserverUiState() {
@@ -104,7 +93,7 @@ class FolderFormFragment : Fragment() {
         requireActivity().invalidateMenu()
     }
 
-    private fun setupRecyclerViewSongs() {
+    private fun setupRecyclerViewAndSearchView() {
         songsAdapter = FolderFormSongsAdapter()
 
         binding.folderFormSongsRecyclerView.apply {
@@ -115,6 +104,18 @@ class FolderFormFragment : Fragment() {
             )
             adapter = songsAdapter
         }
+
+        binding.searchView.setOnQueryTextListener(object : OnQueryTextListener,
+            android.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.searchSongInfo(newText.orEmpty())
+                return false
+            }
+        })
     }
 
     private fun setEnabledFields(enable: Boolean = false) {
