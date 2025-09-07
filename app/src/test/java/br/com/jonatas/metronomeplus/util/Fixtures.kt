@@ -40,4 +40,11 @@ object Fixtures {
         FolderSongCrossRefDto(folderId = "folder4", songId = "song5"),
         FolderSongCrossRefDto(folderId = "folder4", songId = "song3"),
     )
+
+    val mockBeatListDto: List<BeatDto> = listOf(
+        BeatDto(BeatStateDto.Normal),
+        BeatDto(BeatStateDto.Silence),
+        BeatDto(BeatStateDto.Accent),
+        BeatDto(BeatStateDto.Medium)
+    )
 }

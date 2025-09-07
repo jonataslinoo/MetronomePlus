@@ -39,18 +39,14 @@ class SongBeatListView @JvmOverloads constructor(
             drawable?.setTint(ContextCompat.getColor(context, R.color.white80))
             setImageDrawable(drawable)
 
-            layoutParams = if (index == 0) {
-                LayoutParams(39, 39).apply {
-                    setMargins(0, 0, 4, 0)
-                }
-            } else if (index - 1 == beatsUi.size) {
-                LayoutParams(39, 39).apply {
-                    setMargins(4, 0, 4, 0)
-                }
-            } else {
-                LayoutParams(39, 39).apply {
-                    setMargins(4, 0, 4, 0)
-                }
+            val (marginLeft, marginRight) = when (index) {
+                0 -> Pair(0, 4)
+                beatsUi.lastIndex -> Pair(4, 0)
+                else -> Pair(4, 4)
+            }
+
+            layoutParams = LayoutParams(39, 39).apply {
+                setMargins(marginLeft, 0, marginRight, 0)
             }
         }
 
