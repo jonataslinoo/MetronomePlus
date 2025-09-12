@@ -26,8 +26,10 @@ import br.com.jonatas.metronomeplus.presenter.extension.setAlphaForState
 import br.com.jonatas.metronomeplus.presenter.extension.showMessage
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
+import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.FolderFormSongsAdapter
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterState
 import br.com.jonatas.metronomeplus.presenter.viewmodel.FolderFormViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -42,8 +44,9 @@ class FolderFormFragment : Fragment() {
     private lateinit var songsAdapter: FolderFormSongsAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentFolderFormBinding.inflate(inflater, container, false)
         val view = binding.root
@@ -53,10 +56,12 @@ class FolderFormFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupObserverUiState()
         setupMenuActionBar()
         setupBackButton()
         setupRecyclerViewAndSearchView()
+        setupListeners()
+
+        setupObserverUiState()
     }
 
     private fun setupObserverUiState() {
@@ -88,6 +93,7 @@ class FolderFormFragment : Fragment() {
             is FolderFormTitleMode.ViewFolder -> getString(R.string.view_folder)
             is FolderFormTitleMode.EditFolder -> getString(R.string.edit_folder)
         }
+
         songsAdapter.submitList(formUiState.songsUi)
 
         setEnabledFields(formUiState.isEditMode)
@@ -126,7 +132,22 @@ class FolderFormFragment : Fragment() {
         binding.searchView.enabledAllChildren(enable)
         binding.searchView.setAlphaForState(enable)
 
-        songsAdapter.isEditingEnabled = enable
+        songsAdapter.editableState =
+            EditableAdapterState(isEditingEnabled = enable)
+    }
+
+    private fun setupListeners() {
+        binding.apply {
+            songsAdapter.setCallbacks(
+                callbacks = SongCallbacks(
+                    onItemClicked = { songId -> },
+                    onItemMenuClicked = { songId, view -> },
+                    onItemMove = { fromPosition, toPosition -> },
+                    onItemSelectionToggle = { songId -> },
+                    onListEditMode = { enable -> },
+                )
+            )
+        }
     }
 
     private fun setupMenuActionBar() {
@@ -172,7 +193,7 @@ class FolderFormFragment : Fragment() {
     private fun setVisibilityMenu(
         menu: Menu,
         showSaveMenu: Boolean = false,
-        showEditMenu: Boolean = false
+        showEditMenu: Boolean = false,
     ) {
         menu.findItem(R.id.saveFolder).isVisible = showSaveMenu
         menu.findItem(R.id.editFolder).isVisible = showEditMenu

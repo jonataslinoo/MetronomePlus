@@ -8,22 +8,34 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
 import br.com.jonatas.metronomeplus.presenter.extension.bindNumeratorToViews
 import br.com.jonatas.metronomeplus.presenter.extension.setAlphaForState
+import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterPayloads.PAYLOAD_EDITING_CHANGED
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterPayloads.PAYLOAD_LIST_EDITING_MODE_CHANGED
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterState
 
 class FolderFormSongsAdapter() :
     ListAdapter<SongUiModel, FolderFormSongsAdapter.ViewHolder>(DiffCallback) {
 
-    var isEditingEnabled: Boolean = false
+    private var callbacks: SongCallbacks? = null
+
+    fun setCallbacks(callbacks: SongCallbacks) {
+        this.callbacks = callbacks
+    }
+
+    var editableState: EditableAdapterState = EditableAdapterState()
         set(value) {
             if (field != value) {
                 field = value
-                notifyItemRangeChanged(0, itemCount, PAYLOAD_EDITING_CHANGED)
+                if (value.isEditingEnabled)
+                    notifyItemRangeChanged(0, itemCount, PAYLOAD_EDITING_CHANGED)
+
+                if (value.isListEditingMode)
+                    notifyItemRangeChanged(0, itemCount, PAYLOAD_LIST_EDITING_MODE_CHANGED)
             }
         }
 
     companion object DiffCallback : DiffUtil.ItemCallback<SongUiModel>() {
-        const val PAYLOAD_EDITING_CHANGED = "PAYLOAD_EDITING_CHANGED"
-
         override fun areItemsTheSame(oldItem: SongUiModel, newItem: SongUiModel): Boolean {
             return oldItem.id == newItem.id
         }
@@ -50,7 +62,7 @@ class FolderFormSongsAdapter() :
         }
     }
 
-   inner class ViewHolder(private val binding: ViewFolderFormSongItemBinding) :
+    inner class ViewHolder(private val binding: ViewFolderFormSongItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(songUi: SongUiModel) {
@@ -69,7 +81,7 @@ class FolderFormSongsAdapter() :
 
                 songItemBeatListview.updateBeats(newBeats = songUi.beatPatterns)
 
-                applyEditingState(isEditingEnabled)
+                applyEditingState(editableState.isEditingEnabled)
             }
         }
 
