@@ -72,6 +72,11 @@ class FolderFormSongsAdapter() :
                     if (::songUi.isInitialized)
                         callbacks?.onItemClicked(songUi.id)
                 }
+
+                songItemOptions.setOnClickListener {
+                    if (::songUi.isInitialized)
+                        callbacks?.onItemMenuClicked(songUi.id, it)
+                }
             }
         }
 
@@ -99,7 +104,6 @@ class FolderFormSongsAdapter() :
 
         private fun applyEditingState(isEditing: Boolean) {
             binding.apply {
-                songItemOptions.isEnabled = isEditing
                 songItemSelected.isEnabled = isEditing
             }
         }

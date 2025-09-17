@@ -139,7 +139,7 @@ class FolderFormFragment : Fragment() {
             songsAdapter.setCallbacks(
                 callbacks = SongCallbacks(
                     onItemClicked = { songId -> showMessage(root, "onClick $songId")},
-                    onItemMenuClicked = { songId, view -> },
+                    onItemMenuClicked = { songId, view ->  showMessage(root, "onClick menu $songId - $view")},
                     onItemMove = { fromPosition, toPosition -> },
                     onItemSelectionToggle = { songId -> },
                     onListEditMode = { enable -> },

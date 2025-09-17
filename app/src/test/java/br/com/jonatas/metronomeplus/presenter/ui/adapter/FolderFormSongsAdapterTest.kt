@@ -1,6 +1,7 @@
 package br.com.jonatas.metronomeplus.presenter.ui.adapter
 
 import android.content.Context
+import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
@@ -125,7 +126,6 @@ class FolderFormSongsAdapterTest {
 
         assertTrue(binding.root.isEnabled)
 
-        assertFalse(binding.songItemOptions.isEnabled)
         assertFalse(binding.songItemSelected.isEnabled)
     }
 
@@ -209,7 +209,89 @@ class FolderFormSongsAdapterTest {
         try {
             viewHolder.itemView.performClick()
         } catch (e: Exception) {
-            fail("O aplicativo quebrou com uma exceção: ${e.message}")
+            fail("Clicking root view crashes the application with null callbacks: ${e.message}")
+        }
+    }
+
+    @Test
+    fun `should return the songId and anchorView when clicking on the songItemOptions view`() {
+        val position = 0
+        val songUi = testSongs[position]
+
+        val slot = slot<String>()
+        val slotView = slot<View>()
+        every { callbacks.onItemMenuClicked(capture(slot), capture(slotView)) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, position)
+
+        binding.songItemOptions.performClick()
+
+        val capturedId = slot.captured
+        val capturedView = slotView.captured
+        assertEquals(songUi.id, capturedId)
+        assertEquals(binding.songItemOptions, capturedView)
+
+        verify(exactly = 1) { callbacks.onItemMenuClicked(songUi.id, binding.songItemOptions) }
+    }
+
+    @Test
+    fun `should not return songId and anchorView when clicking on the songItemOptions view before bind`() {
+        songsAdapter.setCallbacks(callbacks = callbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        binding.songItemOptions.performClick()
+
+        verify(exactly = 0) { callbacks.onItemClicked(any()) }
+    }
+
+    @Test
+    fun `should return correct songId and anchorView when the view holder is recycled and rebound`() {
+        val position = 0
+        val songUi1 = testSongs[position]
+
+        val slot = slot<String>()
+        val slotView = slot<View>()
+        every { callbacks.onItemMenuClicked(capture(slot), capture(slotView)) } just Runs
+
+        songsAdapter.setCallbacks(callbacks = callbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        songsAdapter.onBindViewHolder(viewHolder, position)
+        val viewOptions = binding.songItemOptions
+        viewOptions.performClick()
+
+        assertEquals(songUi1.id, slot.captured)
+        assertEquals(viewOptions, slotView.captured)
+
+        val position2 = 1
+        val songUi2 = testSongs[position2]
+
+        songsAdapter.onBindViewHolder(viewHolder, position2)
+        val viewOptions2 = binding.songItemOptions
+        viewOptions2.performClick()
+
+        assertEquals(songUi2.id, slot.captured)
+        assertEquals(viewOptions2, slotView.captured)
+
+        verify(exactly = 2) { callbacks.onItemMenuClicked(any(), any()) }
+    }
+
+    @Test
+    fun `should not crash when clicked on songItemOptions and callbacks are null`() {
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        try {
+            binding.songItemOptions.performClick()
+        } catch (e: Exception) {
+            fail("Clicking songItemOptions crashes the application with null callbacks: ${e.message}")
         }
     }
 }
