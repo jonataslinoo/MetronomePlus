@@ -7,26 +7,30 @@ import androidx.core.view.isVisible
 import androidx.test.core.app.ApplicationProvider
 import br.com.jonatas.metronomeplus.data.mapper.toDomainList
 import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
-import br.com.jonatas.metronomeplus.presenter.extension.disabledAlpha
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
+import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
 import br.com.jonatas.metronomeplus.util.Fixtures
 import io.mockk.MockKAnnotations
+import io.mockk.Runs
 import io.mockk.clearAllMocks
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.slot
+import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.LooperMode
 import org.robolectric.shadows.ShadowLooper
 
 @RunWith(RobolectricTestRunner::class)
-@LooperMode(LooperMode.Mode.LEGACY)
 class FolderFormSongsAdapterTest {
 
     private lateinit var context: Context
@@ -37,6 +41,9 @@ class FolderFormSongsAdapterTest {
 
     @MockK
     private lateinit var binding: ViewFolderFormSongItemBinding
+
+    @MockK
+    private lateinit var callbacks: SongCallbacks
 
     @Before
     fun setup() {
@@ -68,20 +75,17 @@ class FolderFormSongsAdapterTest {
 
     @Test
     fun `should return the correct size when receiving many songs`() {
-        val songs = Fixtures.mockAllSongsDto().toDomainList()
-
         assertTrue(songsAdapter.currentList.isEmpty())
 
-        songsAdapter.submitList(songs.toUiModelList())
+        songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
 
-        assertEquals(songs.size, songsAdapter.itemCount)
+        assertEquals(testSongs.size, songsAdapter.itemCount)
     }
 
     @Test
     fun `should bind the data correctly to views when onBindViewHolder is called`() {
         val position = 0
-        val testSongs = Fixtures.mockAllSongsDto().toDomainList().toUiModelList()
         val songUi = testSongs[position]
 
         songsAdapter.submitList(testSongs)
@@ -91,16 +95,13 @@ class FolderFormSongsAdapterTest {
         val numeratorDigits = songUi.timeSignature.numerator.toString().padStart(2, ' ')
         val timeSignatureView = binding.songItemViewSignature
 
+        assertTrue(binding.songItemOptions.isVisible)
+        assertTrue(binding.songItemSelected.isInvisible)
+
         assertEquals(songUi.title, binding.songItemTitle.text.toString())
         assertEquals(songUi.artist, binding.songItemArtist.text.toString())
         assertEquals(songUi.bpm.toString(), binding.songItemBpm.text.toString())
         assertEquals(songUi.beatPatterns.size, binding.songItemBeatListview.childCount)
-
-        assertTrue(binding.songItemOptions.isVisible)
-        assertTrue(binding.songItemSelected.isInvisible)
-        assertFalse(binding.root.isEnabled)
-        assertFalse(binding.songItemOptions.isEnabled)
-        assertFalse(binding.songItemSelected.isEnabled)
 
         assertEquals(
             numeratorDigits[0].toString(),
@@ -117,48 +118,98 @@ class FolderFormSongsAdapterTest {
     }
 
     @Test
-    fun `should set views with disabledAlpha when edit mode is disabled`() {
-        val testSongs = Fixtures.mockAllSongsDto().toDomainList().toUiModelList()
-
+    fun `should set root view as enabled when edit mode is disabled`() {
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, 0)
-        songsAdapter.isEditingEnabled = false
 
-        val timeSignatureView = binding.songItemViewSignature
-        val disabledAlpha = context.disabledAlpha
+        assertTrue(binding.root.isEnabled)
 
-        assertEquals(disabledAlpha, binding.songItemTitle.alpha)
-        assertEquals(disabledAlpha, binding.songItemArtist.alpha)
-        assertEquals(disabledAlpha, binding.songItemBpm.alpha)
-        assertEquals(disabledAlpha, binding.songItemOptions.alpha)
-        assertEquals(disabledAlpha, binding.songItemBeatListview.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigNumeratorOne.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigNumeratorTwo.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigBar.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigDenominator.alpha)
+        assertFalse(binding.songItemOptions.isEnabled)
+        assertFalse(binding.songItemSelected.isEnabled)
     }
 
     @Test
-    fun `should set views with enabledAlpha when edit mode is enabled`() {
-        val testSongs = Fixtures.mockAllSongsDto().toDomainList().toUiModelList()
+    fun `should set all views as enabled when edit mode is enabled`() {
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.editableState = songsAdapter.editableState.copy(isEditingEnabled = true)
+        songsAdapter.onBindViewHolder(viewHolder, 0)
 
+        assertTrue(binding.root.isEnabled)
+        assertTrue(binding.songItemOptions.isEnabled)
+        assertTrue(binding.songItemSelected.isEnabled)
+    }
+
+    @Test
+    fun `should return songId when clicking on the root view`() {
+        val position = 0
+        val songUi = testSongs[position]
+
+        val slot = slot<String>()
+        every { callbacks.onItemClicked(capture(slot)) } just Runs
+
+        songsAdapter.setCallbacks(callbacks = callbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, position)
+
+        viewHolder.itemView.performClick()
+
+        val capturedId = slot.captured
+        assertEquals(songUi.id, capturedId)
+        verify(exactly = 1) { callbacks.onItemClicked(songUi.id) }
+    }
+
+    @Test
+    fun `should not return songId when clicking on the root view before bind`() {
+        songsAdapter.setCallbacks(callbacks = callbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        viewHolder.itemView.performClick()
+
+        verify(exactly = 0) { callbacks.onItemClicked(any()) }
+    }
+
+    @Test
+    fun `should return correct songId when the view holder is recycled and rebound`() {
+        val position = 0
+        val songUi1 = testSongs[position]
+
+        val slot = slot<String>()
+        every { callbacks.onItemClicked(capture(slot)) } just Runs
+
+        songsAdapter.setCallbacks(callbacks = callbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        songsAdapter.onBindViewHolder(viewHolder, position)
+        viewHolder.itemView.performClick()
+
+        assertEquals(songUi1.id, slot.captured)
+
+        val position2 = 1
+        val songUi2 = testSongs[position2]
+
+        songsAdapter.onBindViewHolder(viewHolder, position2)
+        viewHolder.itemView.performClick()
+
+        assertEquals(songUi2.id, slot.captured)
+
+        verify(exactly = 2) { callbacks.onItemClicked(any()) }
+    }
+
+    @Test
+    fun `should not crash when clicked and callbacks are null`() {
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, 0)
-        songsAdapter.isEditingEnabled = true
 
-        val timeSignatureView = binding.songItemViewSignature
-        val disabledAlpha = context.disabledAlpha
-
-        assertEquals(disabledAlpha, binding.songItemTitle.alpha)
-        assertEquals(disabledAlpha, binding.songItemArtist.alpha)
-        assertEquals(disabledAlpha, binding.songItemBpm.alpha)
-        assertEquals(disabledAlpha, binding.songItemOptions.alpha)
-        assertEquals(disabledAlpha, binding.songItemBeatListview.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigNumeratorOne.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigNumeratorTwo.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigBar.alpha)
-        assertEquals(disabledAlpha, timeSignatureView.songSigDenominator.alpha)
+        try {
+            viewHolder.itemView.performClick()
+        } catch (e: Exception) {
+            fail("O aplicativo quebrou com uma exceção: ${e.message}")
+        }
     }
 }

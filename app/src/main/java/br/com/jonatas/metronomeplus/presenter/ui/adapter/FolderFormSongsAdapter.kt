@@ -7,7 +7,6 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
 import br.com.jonatas.metronomeplus.presenter.extension.bindNumeratorToViews
-import br.com.jonatas.metronomeplus.presenter.extension.setAlphaForState
 import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterPayloads.PAYLOAD_EDITING_CHANGED
@@ -65,7 +64,20 @@ class FolderFormSongsAdapter() :
     inner class ViewHolder(private val binding: ViewFolderFormSongItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
+        private lateinit var songUi: SongUiModel
+
+        init {
+            binding.apply {
+                root.setOnClickListener {
+                    if (::songUi.isInitialized)
+                        callbacks?.onItemClicked(songUi.id)
+                }
+            }
+        }
+
         fun bind(songUi: SongUiModel) {
+            this.songUi = songUi
+
             binding.apply {
                 songItemTitle.text = songUi.title
                 songItemArtist.text = songUi.artist
@@ -87,19 +99,8 @@ class FolderFormSongsAdapter() :
 
         private fun applyEditingState(isEditing: Boolean) {
             binding.apply {
-                root.isEnabled = isEditing
                 songItemOptions.isEnabled = isEditing
                 songItemSelected.isEnabled = isEditing
-
-                songItemTitle.setAlphaForState(isEditing)
-                songItemArtist.setAlphaForState(isEditing)
-                songItemBpm.setAlphaForState(isEditing)
-                songItemViewSignature.songSigNumeratorOne.setAlphaForState(isEditing)
-                songItemViewSignature.songSigNumeratorTwo.setAlphaForState(isEditing)
-                songItemViewSignature.songSigBar.setAlphaForState(isEditing)
-                songItemViewSignature.songSigDenominator.setAlphaForState(isEditing)
-                songItemOptions.setAlphaForState(isEditing)
-                songItemBeatListview.setAlphaForState(isEditing)
             }
         }
     }

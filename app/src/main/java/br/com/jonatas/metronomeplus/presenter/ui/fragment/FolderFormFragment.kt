@@ -129,8 +129,6 @@ class FolderFormFragment : Fragment() {
         binding.folderName.isEnabled = enable
         binding.folderName.setAlphaForState(enable)
         binding.textInputLayoutName.setAlphaForState(enable)
-        binding.searchView.enabledAllChildren(enable)
-        binding.searchView.setAlphaForState(enable)
 
         songsAdapter.editableState =
             EditableAdapterState(isEditingEnabled = enable)
@@ -140,7 +138,7 @@ class FolderFormFragment : Fragment() {
         binding.apply {
             songsAdapter.setCallbacks(
                 callbacks = SongCallbacks(
-                    onItemClicked = { songId -> },
+                    onItemClicked = { songId -> showMessage(root, "onClick $songId")},
                     onItemMenuClicked = { songId, view -> },
                     onItemMove = { fromPosition, toPosition -> },
                     onItemSelectionToggle = { songId -> },
