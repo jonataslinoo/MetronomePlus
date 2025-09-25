@@ -95,7 +95,7 @@ class FolderFormFragment : Fragment() {
 
         songsAdapter.submitList(formUiState.songsUi)
 
-        setEnabledFields(formUiState.isEditMode)
+        setEnabledFields(formUiState.editableState)
         requireActivity().invalidateMenu()
     }
 
@@ -124,13 +124,12 @@ class FolderFormFragment : Fragment() {
         })
     }
 
-    private fun setEnabledFields(enable: Boolean = false) {
-        binding.folderName.isEnabled = enable
-        binding.folderName.setAlphaForState(enable)
-        binding.textInputLayoutName.setAlphaForState(enable)
+    private fun setEnabledFields(editableState: EditableState) {
+        binding.folderName.isEnabled = editableState.isEditMode
+        binding.folderName.setAlphaForState(editableState.isEditMode)
+        binding.textInputLayoutName.setAlphaForState(editableState.isEditMode)
 
-        songsAdapter.editableState =
-            EditableState(isEditMode = enable)
+        songsAdapter.editableState = editableState
     }
 
     private fun setupListeners() {
@@ -139,19 +138,11 @@ class FolderFormFragment : Fragment() {
                 callbacks = SongCallbacks(
                     onItemClicked = { songId -> showMessage(root, "onClick $songId") },
                     onItemMenuClicked = { songId, view ->
-                        showMessage(
-                            root,
-                            "onClick menu $songId - $view"
-                        )
+                        showMessage(root, "onClick menu $songId - $view")
                     },
                     onItemMove = { fromPosition, toPosition -> },
                     onItemSelectionToggle = { songId -> },
-                    onListEditMode = { enable ->
-                        showMessage(
-                            root,
-                            "enabled list edit mode: $enable"
-                        )
-                    },
+                    onListEditMode = { enable -> viewModel.enableListEditMode(enable) },
                 )
             )
         }
@@ -168,7 +159,7 @@ class FolderFormFragment : Fragment() {
             override fun onPrepareMenu(menu: Menu) {
                 val currentState = viewModel.uiState.value
                 if (currentState is UiState.Ready) {
-                    val isEditMode = currentState.result.isEditMode
+                    val isEditMode = currentState.result.editableState.isEditMode
                     setVisibilityMenu(
                         menu = menu,
                         showSaveMenu = isEditMode,
@@ -187,7 +178,7 @@ class FolderFormFragment : Fragment() {
                     }
 
                     R.id.editFolder -> {
-                        viewModel.onEditClicked()
+                        viewModel.enableEditMode()
                         true
                     }
 

@@ -12,6 +12,7 @@ import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 import br.com.jonatas.metronomeplus.util.Fixtures
 import io.mockk.Called
 import io.mockk.MockKAnnotations
@@ -29,6 +30,7 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -136,9 +138,9 @@ class FolderFormViewModelTest {
             val expectedSongs = Fixtures.mockAllSongsDto().toDomainList()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
-                isEditMode = false,
                 barTitle = FolderFormTitleMode.ViewFolder,
-                songsUi = expectedSongs.toUiModelList()
+                songsUi = expectedSongs.toUiModelList(),
+                editableState = EditableState(isEditMode = false)
             )
 
             createViewModel(
@@ -174,9 +176,9 @@ class FolderFormViewModelTest {
             val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
-                isEditMode = true,
                 barTitle = FolderFormTitleMode.NewFolder,
-                songsUi = songs.toUiModelList()
+                songsUi = songs.toUiModelList(),
+                editableState = EditableState(isEditMode = true)
             )
 
             createViewModel(
@@ -211,9 +213,9 @@ class FolderFormViewModelTest {
             val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
-                isEditMode = false,
                 barTitle = FolderFormTitleMode.ViewFolder,
-                songsUi = songs.toUiModelList()
+                songsUi = songs.toUiModelList(),
+                editableState = EditableState(isEditMode = false)
             )
 
             createViewModel(
@@ -247,9 +249,9 @@ class FolderFormViewModelTest {
             val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
-                isEditMode = true,
                 barTitle = FolderFormTitleMode.EditFolder,
-                songsUi = songs.toUiModelList()
+                songsUi = songs.toUiModelList(),
+                editableState = EditableState(isEditMode = true)
             )
 
             createViewModel(
@@ -263,7 +265,7 @@ class FolderFormViewModelTest {
                 viewModel.uiState.toList(states)
             }
 
-            viewModel.onEditClicked()
+            viewModel.enableEditMode()
 
             mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
 
@@ -324,6 +326,49 @@ class FolderFormViewModelTest {
             }
             assertEquals(4, states.size)
             assertEquals(expectedSongByArtist.toUiModel(), actualSongByArtists)
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `should toggle the list edit mode when enableListEditMode is called`() =
+        runTest {
+            val folder = Folder(id = "folder2", name = "Folder 2", musics = 2, date = 123L)
+            val songs = emptyList<Song>()
+
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
+            )
+
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            viewModel.enableListEditMode(true)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateWithEditEnabled =
+                states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            assertTrue(
+                "Expected isListEditMode enabled",
+                stateWithEditEnabled.result.editableState.isListEditMode
+            )
+
+            viewModel.enableListEditMode(false)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateWithEditDisabled =
+                states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            assertFalse(
+                "Expected isListEditMode disabled",
+                stateWithEditDisabled.result.editableState.isListEditMode
+            )
 
             coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
             coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }

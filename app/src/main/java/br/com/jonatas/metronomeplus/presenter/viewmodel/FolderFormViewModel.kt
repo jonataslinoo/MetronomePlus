@@ -11,6 +11,7 @@ import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,9 +33,9 @@ class FolderFormViewModel @Inject constructor(
     private val getSongsByFolderUseCase: GetSongsByFolderUseCase,
 ) : ViewModel() {
 
-    private val _searchSongInfo = MutableStateFlow<String>("")
-    private val _isEditMode = MutableStateFlow<Boolean>(false)
     private val folderId: String? = savedStateHandle["id"]
+    private val _searchSongInfo = MutableStateFlow<String>("")
+    private val _editableState = MutableStateFlow(EditableState(isEditMode = folderId == null))
 
     private val initialFolderFlow = flow {
         emit(getFolderUseCase(folderId = folderId))
@@ -45,18 +47,18 @@ class FolderFormViewModel @Inject constructor(
             combine(
                 getSongsByFolderUseCase(folder = folder),
                 _searchSongInfo,
-                _isEditMode,
-            ) { songs, query, isEditing ->
+                _editableState,
+            ) { songs, query, editableState ->
 
-                val (canEdit, barTitle) = folderFormUiStateInfo(isEditing)
+                val barTitle = getBarTitle(editableState.isEditMode)
 
                 val filteredList = songs.filterSongs(query)
 
                 FolderFormUiState(
                     folderUi = folder.toUiModel(),
-                    isEditMode = canEdit,
                     barTitle = barTitle,
-                    songsUi = filteredList.toUiModelList()
+                    songsUi = filteredList.toUiModelList(),
+                    editableState = editableState
                 )
             }
         }.map { completeState ->
@@ -69,15 +71,12 @@ class FolderFormViewModel @Inject constructor(
             initialValue = UiState.Loading
         )
 
-    private fun folderFormUiStateInfo(isEditing: Boolean): Pair<Boolean, FolderFormTitleMode> {
+    private fun getBarTitle(isEditing: Boolean): FolderFormTitleMode {
         return if (folderId != null) {
-            if (isEditing) {
-                true to FolderFormTitleMode.EditFolder
-            } else {
-                false to FolderFormTitleMode.ViewFolder
-            }
+            if (isEditing) FolderFormTitleMode.EditFolder
+            else FolderFormTitleMode.ViewFolder
         } else {
-            true to FolderFormTitleMode.NewFolder
+            FolderFormTitleMode.NewFolder
         }
     }
 
@@ -85,7 +84,11 @@ class FolderFormViewModel @Inject constructor(
         _searchSongInfo.value = query
     }
 
-    fun onEditClicked() {
-        _isEditMode.value = true
+    fun enableEditMode() {
+        _editableState.update { it.copy(isEditMode = true) }
+    }
+
+    fun enableListEditMode(enable: Boolean) {
+        _editableState.update { it.copy(isListEditMode = enable) }
     }
 }
