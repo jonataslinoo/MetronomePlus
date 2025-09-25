@@ -11,7 +11,7 @@ import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
-import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterState
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 import br.com.jonatas.metronomeplus.util.Fixtures
 import br.com.jonatas.metronomeplus.util.ThemesContextTest
 import com.google.android.material.card.MaterialCardView
@@ -119,7 +119,7 @@ class FolderFormSongsAdapterTest {
 
     @Test
     fun `should set the correct visibility state when list edit mode is disabled`() {
-        songsAdapter.editableState = EditableAdapterState(isListEditingMode = false)
+        songsAdapter.editableState = EditableState(isListEditMode = false)
 
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
@@ -132,7 +132,7 @@ class FolderFormSongsAdapterTest {
 
     @Test
     fun `should set the correct visibility state when list edit mode is enabled`() {
-        songsAdapter.editableState = EditableAdapterState(isListEditingMode = true)
+        songsAdapter.editableState = EditableState(isListEditMode = true)
 
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
@@ -299,7 +299,7 @@ class FolderFormSongsAdapterTest {
 
     @Test
     fun `should not execute long click callback on the root view when edit mode is disabled`() {
-        songsAdapter.editableState = EditableAdapterState(isEditingEnabled = false)
+        songsAdapter.editableState = EditableState(isEditMode = false)
 
         every { callbacks.onListEditMode(any()) } just Runs
 
@@ -316,7 +316,7 @@ class FolderFormSongsAdapterTest {
 
     @Test
     fun `should execute the long click callback in the root view when edit mode is enabled`() {
-        songsAdapter.editableState = EditableAdapterState(isEditingEnabled = true)
+        songsAdapter.editableState = EditableState(isEditMode = true)
 
         every { callbacks.onListEditMode(any()) } just Runs
 
@@ -334,7 +334,7 @@ class FolderFormSongsAdapterTest {
     @Test
     fun `should not execute item clicked callback when in list edit mode`() {
         songsAdapter.editableState =
-            EditableAdapterState(isEditingEnabled = true, isListEditingMode = true)
+            EditableState(isEditMode = true, isListEditMode = true)
 
         every { callbacks.onItemClicked(any()) } just Runs
 
@@ -352,7 +352,7 @@ class FolderFormSongsAdapterTest {
     @Test
     fun `should not execute item menu clicked callback when in list edit mode`() {
         songsAdapter.editableState =
-            EditableAdapterState(isEditingEnabled = true, isListEditingMode = true)
+            EditableState(isEditMode = true, isListEditMode = true)
 
         every { callbacks.onItemMenuClicked(any(), any()) } just Runs
 
@@ -370,7 +370,7 @@ class FolderFormSongsAdapterTest {
     @Test
     fun `should enable list edit mode when it is disabled and a long click is performed`() {
         songsAdapter.editableState =
-            EditableAdapterState(isEditingEnabled = true, isListEditingMode = false)
+            EditableState(isEditMode = true, isListEditMode = false)
 
         val slot = slot<Boolean>()
         every { callbacks.onListEditMode(capture(slot)) } just Runs
@@ -391,7 +391,7 @@ class FolderFormSongsAdapterTest {
     @Test
     fun `should disable list edit mode when it is enabled and a long click is performed`() {
         songsAdapter.editableState =
-            EditableAdapterState(isEditingEnabled = true, isListEditingMode = true)
+            EditableState(isEditMode = true, isListEditMode = true)
 
         val slot = slot<Boolean>()
         every { callbacks.onListEditMode(capture(slot)) } just Runs

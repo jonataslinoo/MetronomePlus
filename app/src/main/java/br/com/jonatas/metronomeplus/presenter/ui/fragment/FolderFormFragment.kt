@@ -28,7 +28,7 @@ import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.FolderFormSongsAdapter
-import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterState
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 import br.com.jonatas.metronomeplus.presenter.viewmodel.FolderFormViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -130,7 +130,7 @@ class FolderFormFragment : Fragment() {
         binding.textInputLayoutName.setAlphaForState(enable)
 
         songsAdapter.editableState =
-            EditableAdapterState(isEditingEnabled = enable)
+            EditableState(isEditMode = enable)
     }
 
     private fun setupListeners() {

@@ -13,7 +13,7 @@ import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterPayloads.PAYLOAD_EDITING_CHANGED
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterPayloads.PAYLOAD_LIST_EDITING_MODE_CHANGED
-import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterState
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 
 class FolderFormSongsAdapter() :
     ListAdapter<SongUiModel, FolderFormSongsAdapter.ViewHolder>(DiffCallback) {
@@ -24,14 +24,14 @@ class FolderFormSongsAdapter() :
         this.callbacks = callbacks
     }
 
-    var editableState: EditableAdapterState = EditableAdapterState()
+    var editableState: EditableState = EditableState()
         set(value) {
             if (field != value) {
                 field = value
-                if (value.isEditingEnabled)
+                if (value.isEditMode)
                     notifyItemRangeChanged(0, itemCount, PAYLOAD_EDITING_CHANGED)
 
-                if (value.isListEditingMode)
+                if (value.isListEditMode)
                     notifyItemRangeChanged(0, itemCount, PAYLOAD_LIST_EDITING_MODE_CHANGED)
             }
         }
@@ -71,14 +71,14 @@ class FolderFormSongsAdapter() :
         init {
             binding.apply {
                 root.setOnLongClickListener {
-                    if (editableState.isEditingEnabled)
-                        callbacks?.onListEditMode(!editableState.isListEditingMode)
+                    if (editableState.isEditMode)
+                        callbacks?.onListEditMode(!editableState.isListEditMode)
 
                     return@setOnLongClickListener true
                 }
 
                 root.setOnClickListener {
-                    if (::songUi.isInitialized && !editableState.isListEditingMode)
+                    if (::songUi.isInitialized && !editableState.isListEditMode)
                         callbacks?.onItemClicked(songUi.id)
                 }
 
@@ -107,7 +107,7 @@ class FolderFormSongsAdapter() :
 
                 songItemBeatListview.updateBeats(newBeats = songUi.beatPatterns)
 
-                applyListEditingMode(editableState.isListEditingMode)
+                applyListEditingMode(editableState.isListEditMode)
             }
         }
 
