@@ -15,6 +15,7 @@
     <string name="content_description_image_of_an_empty_music_folder">Image of an empty music folder.</string>
     <string name="content_description_file_options_menu">File options menu.</string>
     <string name="content_description_metronome_plus_logo_with_an_eighth_note_in_the_middle">Metronome Plus logo with an eighth note in the middle.</string>
+    <string name="content_description_drag_drop_option">Image of the drag and drop option</string>
 
     <!-- Hints -->
     <string name="hint_search_musics_by_name">Search musics by name</string>
@@ -39,5 +40,8 @@
     <string name="title_load_into_metronome">Load into metronome</string>
     <string name="title_edit_folder">Edit folder</string>
     <string name="title_delete_folder">Delete folder</string>
+
+    <!-- Error Message -->
+    <string name="error_message_folder_form_songs_adapter_set_callbacks_is_not_initialized">Error: FolderFormSongsAdapter.setCallbacks is not initialized.</string>
 
 </resources>

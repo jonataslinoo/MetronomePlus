@@ -2,7 +2,7 @@ package br.com.jonatas.metronomeplus.presenter.ui.adapter
 
 import android.content.Context
 import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.view.isGone
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.test.core.app.ApplicationProvider
@@ -11,7 +11,10 @@ import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterState
 import br.com.jonatas.metronomeplus.util.Fixtures
+import br.com.jonatas.metronomeplus.util.ThemesContextTest
+import com.google.android.material.card.MaterialCardView
 import io.mockk.MockKAnnotations
 import io.mockk.Runs
 import io.mockk.clearAllMocks
@@ -22,7 +25,6 @@ import io.mockk.slot
 import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -34,10 +36,9 @@ import org.robolectric.shadows.ShadowLooper
 @RunWith(RobolectricTestRunner::class)
 class FolderFormSongsAdapterTest {
 
-    private lateinit var context: Context
     private lateinit var songsAdapter: FolderFormSongsAdapter
     private lateinit var testSongs: List<SongUiModel>
-    private lateinit var parent: ConstraintLayout
+    private lateinit var parent: MaterialCardView
     private lateinit var viewHolder: FolderFormSongsAdapter.ViewHolder
 
     @MockK
@@ -50,10 +51,11 @@ class FolderFormSongsAdapterTest {
     fun setup() {
         MockKAnnotations.init(this)
 
-        context = ApplicationProvider.getApplicationContext()
-        testSongs = Fixtures.mockAllSongsDto().toDomainList().toUiModelList()
-        parent = ConstraintLayout(context)
+        val context: Context = ApplicationProvider.getApplicationContext()
+        val themedContext = ThemesContextTest.createThemedContext(context)
+        parent = MaterialCardView(themedContext)
         songsAdapter = FolderFormSongsAdapter()
+        testSongs = Fixtures.mockAllSongsDto().toDomainList().toUiModelList()
 
         viewHolder = songsAdapter.onCreateViewHolder(parent, 0)
         binding = ViewFolderFormSongItemBinding.bind(viewHolder.itemView)
@@ -96,9 +98,6 @@ class FolderFormSongsAdapterTest {
         val numeratorDigits = songUi.timeSignature.numerator.toString().padStart(2, ' ')
         val timeSignatureView = binding.songItemViewSignature
 
-        assertTrue(binding.songItemOptions.isVisible)
-        assertTrue(binding.songItemSelected.isInvisible)
-
         assertEquals(songUi.title, binding.songItemTitle.text.toString())
         assertEquals(songUi.artist, binding.songItemArtist.text.toString())
         assertEquals(songUi.bpm.toString(), binding.songItemBpm.text.toString())
@@ -119,26 +118,29 @@ class FolderFormSongsAdapterTest {
     }
 
     @Test
-    fun `should set root view as enabled when edit mode is disabled`() {
+    fun `should set the correct visibility state when list edit mode is disabled`() {
+        songsAdapter.editableState = EditableAdapterState(isListEditingMode = false)
+
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, 0)
 
-        assertTrue(binding.root.isEnabled)
-
-        assertFalse(binding.songItemSelected.isEnabled)
+        assertTrue(binding.songItemOptions.isVisible)
+        assertTrue(binding.songItemDragDrop.isGone)
+        assertTrue(binding.songItemSelected.isGone)
     }
 
     @Test
-    fun `should set all views as enabled when edit mode is enabled`() {
+    fun `should set the correct visibility state when list edit mode is enabled`() {
+        songsAdapter.editableState = EditableAdapterState(isListEditingMode = true)
+
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
-        songsAdapter.editableState = songsAdapter.editableState.copy(isEditingEnabled = true)
         songsAdapter.onBindViewHolder(viewHolder, 0)
 
-        assertTrue(binding.root.isEnabled)
-        assertTrue(binding.songItemOptions.isEnabled)
-        assertTrue(binding.songItemSelected.isEnabled)
+        assertTrue(binding.songItemOptions.isInvisible)
+        assertTrue(binding.songItemDragDrop.isVisible)
+        assertTrue(binding.songItemSelected.isVisible)
     }
 
     @Test
@@ -292,6 +294,131 @@ class FolderFormSongsAdapterTest {
             binding.songItemOptions.performClick()
         } catch (e: Exception) {
             fail("Clicking songItemOptions crashes the application with null callbacks: ${e.message}")
+        }
+    }
+
+    @Test
+    fun `should not execute long click callback on the root view when edit mode is disabled`() {
+        songsAdapter.editableState = EditableAdapterState(isEditingEnabled = false)
+
+        every { callbacks.onListEditMode(any()) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        viewHolder.itemView.performLongClick()
+
+        verify(exactly = 0) { callbacks.onListEditMode(any()) }
+    }
+
+    @Test
+    fun `should execute the long click callback in the root view when edit mode is enabled`() {
+        songsAdapter.editableState = EditableAdapterState(isEditingEnabled = true)
+
+        every { callbacks.onListEditMode(any()) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        viewHolder.itemView.performLongClick()
+
+        verify(exactly = 1) { callbacks.onListEditMode(any()) }
+    }
+
+    @Test
+    fun `should not execute item clicked callback when in list edit mode`() {
+        songsAdapter.editableState =
+            EditableAdapterState(isEditingEnabled = true, isListEditingMode = true)
+
+        every { callbacks.onItemClicked(any()) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        viewHolder.itemView.performClick()
+
+        verify(exactly = 0) { callbacks.onItemClicked(any()) }
+    }
+
+    @Test
+    fun `should not execute item menu clicked callback when in list edit mode`() {
+        songsAdapter.editableState =
+            EditableAdapterState(isEditingEnabled = true, isListEditingMode = true)
+
+        every { callbacks.onItemMenuClicked(any(), any()) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        viewHolder.itemView.performClick()
+
+        verify(exactly = 0) { callbacks.onItemMenuClicked(any(), any()) }
+    }
+
+    @Test
+    fun `should enable list edit mode when it is disabled and a long click is performed`() {
+        songsAdapter.editableState =
+            EditableAdapterState(isEditingEnabled = true, isListEditingMode = false)
+
+        val slot = slot<Boolean>()
+        every { callbacks.onListEditMode(capture(slot)) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        viewHolder.itemView.performLongClick()
+
+        assertEquals(true, slot.captured)
+
+        verify(exactly = 1) { callbacks.onListEditMode(any()) }
+    }
+
+    @Test
+    fun `should disable list edit mode when it is enabled and a long click is performed`() {
+        songsAdapter.editableState =
+            EditableAdapterState(isEditingEnabled = true, isListEditingMode = true)
+
+        val slot = slot<Boolean>()
+        every { callbacks.onListEditMode(capture(slot)) } just Runs
+
+        songsAdapter.setCallbacks(callbacks)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        viewHolder.itemView.performLongClick()
+
+        assertEquals(false, slot.captured)
+
+        verify(exactly = 1) { callbacks.onListEditMode(any()) }
+    }
+
+    @Test
+    fun `should not crash when long clicked on root view and callbacks are null`() {
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        try {
+            binding.root.performLongClick()
+        } catch (e: Exception) {
+            fail("Long clicking root view crashes the application with null callbacks: ${e.message}")
         }
     }
 }

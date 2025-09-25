@@ -39,4 +39,10 @@
         <item name="android:windowEnterAnimation">@anim/popup_anim</item>
         <item name="android:windowExitAnimation">@anim/popdown_anim</item>
     </style>
+
+    <style name="checkboxStyle" parent="Widget.MaterialComponents.Button">
+        <item name="background">@color/window_background_app</item>
+        <item name="buttonTint">@color/selector_checkbox_color_tint</item>
+        <item name="tickColor">@color/colorTransparent</item>
+    </style>
 </resources>

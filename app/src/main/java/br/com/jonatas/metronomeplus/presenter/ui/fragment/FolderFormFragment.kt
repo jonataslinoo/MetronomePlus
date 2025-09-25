@@ -21,7 +21,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.FragmentFolderFormBinding
-import br.com.jonatas.metronomeplus.presenter.extension.enabledAllChildren
 import br.com.jonatas.metronomeplus.presenter.extension.setAlphaForState
 import br.com.jonatas.metronomeplus.presenter.extension.showMessage
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
@@ -138,11 +137,21 @@ class FolderFormFragment : Fragment() {
         binding.apply {
             songsAdapter.setCallbacks(
                 callbacks = SongCallbacks(
-                    onItemClicked = { songId -> showMessage(root, "onClick $songId")},
-                    onItemMenuClicked = { songId, view ->  showMessage(root, "onClick menu $songId - $view")},
+                    onItemClicked = { songId -> showMessage(root, "onClick $songId") },
+                    onItemMenuClicked = { songId, view ->
+                        showMessage(
+                            root,
+                            "onClick menu $songId - $view"
+                        )
+                    },
                     onItemMove = { fromPosition, toPosition -> },
                     onItemSelectionToggle = { songId -> },
-                    onListEditMode = { enable -> },
+                    onListEditMode = { enable ->
+                        showMessage(
+                            root,
+                            "enabled list edit mode: $enable"
+                        )
+                    },
                 )
             )
         }

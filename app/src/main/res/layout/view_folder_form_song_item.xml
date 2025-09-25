@@ -1,107 +1,124 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="82dp"
-    android:background="?android:attr/selectableItemBackground">
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="6dp"
+    android:backgroundTint="@color/colorTransparent"
+    app:cardCornerRadius="8dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/white80">
 
-    <include
-        android:id="@+id/song_item_view_signature"
-        layout="@layout/view_song_time_signature"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="-4dp"
-        app:layout_constraintBottom_toTopOf="@id/song_item_bpm"
-        app:layout_constraintEnd_toEndOf="@id/song_item_bpm"/>
-
-    <TextView
-        android:id="@+id/song_item_bpm"
-        style="@style/textNumberDisplayStyle"
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:maxLines="1"
-        android:textAlignment="textEnd"
-        android:layout_marginTop="20dp"
-        android:textSize="48sp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="444" />
-
-    <TextView
-        android:id="@+id/song_item_title"
-        android:layout_width="0dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="8dp"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAllCaps="true"
-        android:textColor="@color/white"
-        android:textSize="20sp"
-        app:layout_constraintBottom_toTopOf="@id/song_item_artist"
-        app:layout_constraintEnd_toStartOf="@id/song_item_options"
-        app:layout_constraintStart_toEndOf="@id/song_item_bpm"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed"
-        tools:text="@tools:sample/lorem/random" />
+        android:layout_marginVertical="8dp">
 
-    <TextView
-        android:id="@+id/song_item_artist"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textAllCaps="true"
-        android:textColor="@color/beat_disable_color"
-        android:layout_marginTop="0dp"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        app:layout_constraintBottom_toTopOf="@id/song_item_beat_listview"
-        app:layout_constraintEnd_toEndOf="@id/song_item_title"
-        app:layout_constraintStart_toStartOf="@id/song_item_title"
-        app:layout_constraintTop_toBottomOf="@id/song_item_title"
-        tools:text="@tools:sample/lorem/random" />
+        <include
+            android:id="@+id/song_item_view_signature"
+            layout="@layout/view_song_time_signature"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="-4dp"
+            app:layout_constraintBottom_toTopOf="@id/song_item_bpm"
+            app:layout_constraintEnd_toEndOf="@id/song_item_bpm" />
 
-    <br.com.jonatas.metronomeplus.presenter.ui.custom.SongBeatListView
-        android:id="@+id/song_item_beat_listview"
-        android:layout_width="0dp"
-        android:layout_height="18dp"
-        android:gravity="start"
-        android:layout_marginTop="6dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@id/song_item_artist"
-        app:layout_constraintStart_toStartOf="@id/song_item_artist"
-        app:layout_constraintTop_toBottomOf="@id/song_item_artist"
-        tools:background="@color/black_25_percent" />
+        <TextView
+            android:id="@+id/song_item_bpm"
+            style="@style/textNumberDisplayStyle"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:maxLines="1"
+            android:textAlignment="textEnd"
+            android:textSize="48sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="444" />
 
-    <ImageView
-        android:id="@+id/song_item_options"
-        android:layout_width="wrap_content"
-        android:layout_height="0dp"
-        android:contentDescription="@string/content_description_file_options_menu"
-        android:src="@drawable/menu_selector_folder_item"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="@id/song_item_beat_listview"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/song_item_title" />
+        <TextView
+            android:id="@+id/song_item_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAllCaps="true"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            app:layout_constraintBottom_toTopOf="@id/song_item_artist"
+            app:layout_constraintEnd_toStartOf="@id/song_item_options"
+            app:layout_constraintStart_toEndOf="@id/song_item_bpm"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            tools:text="@tools:sample/lorem/random" />
 
-    <CheckBox
-        android:id="@+id/song_item_selected"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:visibility="invisible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        <TextView
+            android:id="@+id/song_item_artist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAllCaps="true"
+            android:textColor="@color/beat_disable_color"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@id/song_item_beat_listview"
+            app:layout_constraintEnd_toEndOf="@id/song_item_title"
+            app:layout_constraintStart_toStartOf="@id/song_item_title"
+            app:layout_constraintTop_toBottomOf="@id/song_item_title"
+            tools:text="@tools:sample/lorem/random" />
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:layout_marginTop="8dp"
-        android:background="@color/black"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        <br.com.jonatas.metronomeplus.presenter.ui.custom.SongBeatListView
+            android:id="@+id/song_item_beat_listview"
+            android:layout_width="0dp"
+            android:layout_height="18dp"
+            android:layout_marginTop="6dp"
+            android:gravity="start"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@id/song_item_artist"
+            app:layout_constraintTop_toBottomOf="@id/song_item_artist"
+            tools:background="@color/black_25_percent" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <ImageView
+            android:id="@+id/song_item_options"
+            android:layout_width="32dp"
+            android:layout_height="0dp"
+            android:contentDescription="@string/content_description_file_options_menu"
+            android:src="@drawable/menu_selector_folder_item"
+            android:visibility="visible"
+            app:layout_constraintBottom_toTopOf="@id/song_item_beat_listview"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/song_item_title" />
+
+        <CheckBox
+            style="@style/checkboxStyle"
+            android:id="@+id/song_item_selected"
+            android:layout_width="32dp"
+            android:layout_height="0dp"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toTopOf="@id/song_item_beat_listview"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/song_item_drag_drop"
+            android:layout_width="60dp"
+            android:layout_height="0dp"
+            android:background="@color/window_background_app"
+            android:contentDescription="@string/content_description_drag_drop_option"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp"
+            android:src="@drawable/ic_drag_drop"
+            android:visibility="invisible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/beat_disable_color" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -2,6 +2,8 @@ package br.com.jonatas.metronomeplus.presenter.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.view.isInvisible
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -68,8 +70,15 @@ class FolderFormSongsAdapter() :
 
         init {
             binding.apply {
+                root.setOnLongClickListener {
+                    if (editableState.isEditingEnabled)
+                        callbacks?.onListEditMode(!editableState.isListEditingMode)
+
+                    return@setOnLongClickListener true
+                }
+
                 root.setOnClickListener {
-                    if (::songUi.isInitialized)
+                    if (::songUi.isInitialized && !editableState.isListEditingMode)
                         callbacks?.onItemClicked(songUi.id)
                 }
 
@@ -98,13 +107,15 @@ class FolderFormSongsAdapter() :
 
                 songItemBeatListview.updateBeats(newBeats = songUi.beatPatterns)
 
-                applyEditingState(editableState.isEditingEnabled)
+                applyListEditingMode(editableState.isListEditingMode)
             }
         }
 
-        private fun applyEditingState(isEditing: Boolean) {
+        private fun applyListEditingMode(isEditing: Boolean) {
             binding.apply {
-                songItemSelected.isEnabled = isEditing
+                songItemSelected.isVisible = isEditing
+                songItemDragDrop.isVisible = isEditing
+                songItemOptions.isInvisible = isEditing
             }
         }
     }
