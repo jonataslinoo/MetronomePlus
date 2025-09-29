@@ -118,21 +118,21 @@ class FolderFormSongsAdapterTest {
     }
 
     @Test
-    fun `should set the correct visibility state when list edit mode is disabled`() {
-        songsAdapter.editableState = EditableState(isListEditMode = false)
+    fun `should set the correct visibility state when list edit mode and reordering are both disabled`() {
+        songsAdapter.editableState = EditableState(isListEditMode = false, isReorderingMode = false)
 
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, 0)
 
         assertTrue(binding.songItemOptions.isVisible)
-        assertTrue(binding.songItemDragDrop.isGone)
+        assertTrue(binding.songItemDragDrop.isInvisible)
         assertTrue(binding.songItemSelected.isGone)
     }
 
     @Test
-    fun `should set the correct visibility state when list edit mode is enabled`() {
-        songsAdapter.editableState = EditableState(isListEditMode = true)
+    fun `should set the correct visibility state when list edit mode and reordering are both enabled`() {
+        songsAdapter.editableState = EditableState(isListEditMode = true, isReorderingMode = true)
 
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
@@ -140,6 +140,19 @@ class FolderFormSongsAdapterTest {
 
         assertTrue(binding.songItemOptions.isInvisible)
         assertTrue(binding.songItemDragDrop.isVisible)
+        assertTrue(binding.songItemSelected.isVisible)
+    }
+
+    @Test
+    fun `should set the correct visibility state when list edit mode is enabled but reordering is disabled`() {
+        songsAdapter.editableState = EditableState(isListEditMode = true, isReorderingMode = false)
+
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        assertTrue(binding.songItemOptions.isInvisible)
+        assertTrue(binding.songItemDragDrop.isInvisible)
         assertTrue(binding.songItemSelected.isVisible)
     }
 
@@ -301,7 +314,7 @@ class FolderFormSongsAdapterTest {
     fun `should not execute long click callback on the root view when edit mode is disabled`() {
         songsAdapter.editableState = EditableState(isEditMode = false)
 
-        every { callbacks.onListEditMode(any()) } just Runs
+        every { callbacks.onListEditMode(any(), any()) } just Runs
 
         songsAdapter.setCallbacks(callbacks)
 
@@ -311,14 +324,14 @@ class FolderFormSongsAdapterTest {
 
         viewHolder.itemView.performLongClick()
 
-        verify(exactly = 0) { callbacks.onListEditMode(any()) }
+        verify(exactly = 0) { callbacks.onListEditMode(any(), any()) }
     }
 
     @Test
     fun `should execute the long click callback in the root view when edit mode is enabled`() {
         songsAdapter.editableState = EditableState(isEditMode = true)
 
-        every { callbacks.onListEditMode(any()) } just Runs
+        every { callbacks.onListEditMode(any(), any()) } just Runs
 
         songsAdapter.setCallbacks(callbacks)
 
@@ -328,7 +341,7 @@ class FolderFormSongsAdapterTest {
 
         viewHolder.itemView.performLongClick()
 
-        verify(exactly = 1) { callbacks.onListEditMode(any()) }
+        verify(exactly = 1) { callbacks.onListEditMode(any(), any()) }
     }
 
     @Test
@@ -373,7 +386,7 @@ class FolderFormSongsAdapterTest {
             EditableState(isEditMode = true, isListEditMode = false)
 
         val slot = slot<Boolean>()
-        every { callbacks.onListEditMode(capture(slot)) } just Runs
+        every { callbacks.onListEditMode(any(), capture(slot)) } just Runs
 
         songsAdapter.setCallbacks(callbacks)
 
@@ -385,16 +398,14 @@ class FolderFormSongsAdapterTest {
 
         assertEquals(true, slot.captured)
 
-        verify(exactly = 1) { callbacks.onListEditMode(any()) }
+        verify(exactly = 1) { callbacks.onListEditMode(any(), any()) }
     }
 
     @Test
-    fun `should disable list edit mode when it is enabled and a long click is performed`() {
-        songsAdapter.editableState =
-            EditableState(isEditMode = true, isListEditMode = true)
+    fun `should not execute the long click callback in the root view when in list edit mode`() {
+        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
 
-        val slot = slot<Boolean>()
-        every { callbacks.onListEditMode(capture(slot)) } just Runs
+        every { callbacks.onListEditMode(any(), any()) } just Runs
 
         songsAdapter.setCallbacks(callbacks)
 
@@ -404,9 +415,7 @@ class FolderFormSongsAdapterTest {
 
         viewHolder.itemView.performLongClick()
 
-        assertEquals(false, slot.captured)
-
-        verify(exactly = 1) { callbacks.onListEditMode(any()) }
+        verify(exactly = 0) { callbacks.onListEditMode(any(), any()) }
     }
 
     @Test

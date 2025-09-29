@@ -7,5 +7,5 @@ data class SongCallbacks(
     val onItemMenuClicked: (songId: String, anchorView: View) -> Unit = { _, _ -> },
     val onItemSelectionToggle: (songId: String) -> Unit = {},
     val onItemMove: (fromPosition: Int, toPosition: Int) -> Unit = { _, _ -> },
-    val onListEditMode: (enable: Boolean) -> Unit = {},
+    val onListEditMode: (songId: String, enable: Boolean) -> Unit = { _, _ -> },
 )

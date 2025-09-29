@@ -28,10 +28,12 @@ import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormUiState
 import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.states.UiState
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.FolderFormSongsAdapter
+import br.com.jonatas.metronomeplus.presenter.ui.adapter.util.ItemTouchHelperManager
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 import br.com.jonatas.metronomeplus.presenter.viewmodel.FolderFormViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class FolderFormFragment : Fragment() {
@@ -40,7 +42,12 @@ class FolderFormFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: FolderFormViewModel by viewModels()
-    private lateinit var songsAdapter: FolderFormSongsAdapter
+
+    @Inject
+    lateinit var songsAdapter: FolderFormSongsAdapter
+
+    @Inject
+    lateinit var itemTouchHelperManager: ItemTouchHelperManager
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -100,8 +107,6 @@ class FolderFormFragment : Fragment() {
     }
 
     private fun setupRecyclerViewAndSearchView() {
-        songsAdapter = FolderFormSongsAdapter()
-
         binding.folderFormSongsRecyclerView.apply {
             layoutManager = LinearLayoutManager(
                 requireContext(),
@@ -109,6 +114,8 @@ class FolderFormFragment : Fragment() {
                 false
             )
             adapter = songsAdapter
+
+            itemTouchHelperManager.itemTouchHelper.attachToRecyclerView(this)
         }
 
         binding.searchView.setOnQueryTextListener(object : OnQueryTextListener,
@@ -142,7 +149,9 @@ class FolderFormFragment : Fragment() {
                     },
                     onItemMove = { fromPosition, toPosition -> },
                     onItemSelectionToggle = { songId -> },
-                    onListEditMode = { enable -> viewModel.enableListEditMode(enable) },
+                    onListEditMode = { songId, enable ->
+                        showMessage(binding.root, "$songId")
+                        viewModel.enableListEditMode(enable) },
                 )
             )
         }
