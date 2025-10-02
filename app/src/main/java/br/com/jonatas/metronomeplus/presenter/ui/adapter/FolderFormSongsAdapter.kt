@@ -1,6 +1,9 @@
 package br.com.jonatas.metronomeplus.presenter.ui.adapter
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
+import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.ViewGroup
@@ -13,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView
 import br.com.jonatas.metronomeplus.R
 import br.com.jonatas.metronomeplus.databinding.ViewFolderFormSongItemBinding
 import br.com.jonatas.metronomeplus.presenter.extension.bindNumeratorToViews
+import br.com.jonatas.metronomeplus.presenter.extension.vibrateHeavyClick
 import br.com.jonatas.metronomeplus.presenter.model.song.SongCallbacks
 import br.com.jonatas.metronomeplus.presenter.model.song.SongUiModel
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.util.ItemTouchHelperAdapter
@@ -22,6 +26,9 @@ import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableAdapterPa
 import br.com.jonatas.metronomeplus.presenter.ui.adapter.utils.EditableState
 import dagger.hilt.android.scopes.FragmentScoped
 import javax.inject.Inject
+
+private const val DRAG_LONG_CLICK_DELAY = 200L
+private const val DEFAULT_LONG_CLICK_DURATION = 600L
 
 @FragmentScoped
 class FolderFormSongsAdapter @Inject constructor() :
@@ -86,39 +93,12 @@ class FolderFormSongsAdapter @Inject constructor() :
         RecyclerView.ViewHolder(binding.root), ItemTouchHelperViewHolder {
 
         private lateinit var songUi: SongUiModel
+        private val handler = Handler(Looper.getMainLooper())
+        private val vibrator = itemView.context.getSystemService(Vibrator::class.java)
+        private var longPressTriggered = false
 
         init {
-            binding.apply {
-                @SuppressLint("ClickableViewAccessibility")
-                root.setOnTouchListener { view, event ->
-                    view.performClick()
-                    if (editableState.isListEditMode && editableState.isReorderingMode) {
-                        if (event.actionMasked == MotionEvent.ACTION_MOVE) {
-                            itemTouchHelper?.startDrag(this@ViewHolder)
-                        }
-                    }
-                    return@setOnTouchListener false
-                }
-
-                root.setOnLongClickListener {
-                    if (editableState.isEditMode) {
-                        if (::songUi.isInitialized && !editableState.isListEditMode) {
-                            callbacks?.onListEditMode(songUi.id, !editableState.isListEditMode)
-                        }
-                    }
-                    return@setOnLongClickListener true
-                }
-
-                root.setOnClickListener {
-                    if (::songUi.isInitialized && !editableState.isEditMode)
-                        callbacks?.onItemClicked(songUi.id)
-                }
-
-                songItemOptions.setOnClickListener {
-                    if (::songUi.isInitialized)
-                        callbacks?.onItemMenuClicked(songUi.id, it)
-                }
-            }
+            setAllListeners()
         }
 
         fun bind(songUi: SongUiModel) {
@@ -145,8 +125,8 @@ class FolderFormSongsAdapter @Inject constructor() :
 
         private fun applyListEditingMode(editableState: EditableState) {
             binding.apply {
-                songItemSelected.isVisible =  editableState.isListEditMode
-                songItemDragDrop.isVisible =  editableState.isListEditMode
+                songItemSelected.isVisible = editableState.isListEditMode
+                songItemDragDrop.isVisible = editableState.isListEditMode
                 songItemOptions.isInvisible = editableState.isListEditMode
 
                 if (!editableState.isReorderingMode) {
@@ -162,7 +142,73 @@ class FolderFormSongsAdapter @Inject constructor() :
 
         override fun onItemClear() {
             itemView.alpha = 1.0f
-            binding.root.strokeColor = itemView.context.getColor(R.color.white)
+            binding.root.strokeColor = itemView.context.getColor(R.color.white80)
+        }
+
+        private fun setAllListeners() {
+            binding.apply {
+                @SuppressLint("ClickableViewAccessibility")
+                root.setOnTouchListener { view, event ->
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN -> {
+                            handler.removeCallbacksAndMessages(null)
+                            view.isPressed = true
+
+                            if (editableState.isEditMode) {
+                                if (::songUi.isInitialized && !editableState.isListEditMode) {
+                                    executeCallback(DEFAULT_LONG_CLICK_DURATION) {
+                                        callbacks?.onListEditMode(songUi.id, true)
+                                    }
+                                }
+
+                                if (editableState.isListEditMode && editableState.isReorderingMode) {
+                                    executeCallback(DRAG_LONG_CLICK_DELAY) {
+                                        itemTouchHelper?.startDrag(this@ViewHolder)
+                                    }
+                                }
+                            }
+                            return@setOnTouchListener true
+                        }
+
+                        MotionEvent.ACTION_UP -> {
+                            handler.removeCallbacksAndMessages(null)
+                            if (view.isPressed) {
+                                view.isPressed = false
+                                if (!longPressTriggered) {
+                                    if (::songUi.isInitialized && !editableState.isEditMode) {
+                                        callbacks?.onItemClicked(songUi.id)
+                                    }
+                                }
+                                longPressTriggered = false
+                            }
+                            return@setOnTouchListener true
+                        }
+
+                        MotionEvent.ACTION_CANCEL -> {
+                            handler.removeCallbacksAndMessages(null)
+                            view.isPressed = false
+                            longPressTriggered = false
+                            return@setOnTouchListener true
+                        }
+
+                        else -> return@setOnTouchListener false
+                    }
+                }
+
+                songItemOptions.setOnClickListener {
+                    if (::songUi.isInitialized)
+                        callbacks?.onItemMenuClicked(songUi.id, it)
+                }
+            }
+        }
+
+        private fun executeCallback(duration: Long, callback: () -> Unit) {
+            val runnable = Runnable {
+                longPressTriggered = true
+                vibrator.vibrateHeavyClick()
+                callback.invoke()
+            }
+            handler.postDelayed(runnable, duration)
         }
     }
 }
