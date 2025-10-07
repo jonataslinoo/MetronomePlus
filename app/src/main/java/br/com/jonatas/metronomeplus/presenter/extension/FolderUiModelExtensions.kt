@@ -28,3 +28,7 @@ fun FolderUiModel.getDrawableResId(): Int = when (this.musics) {
     in 1..3 -> R.drawable.ic_folder_file_white
     else -> R.drawable.ic_folder_files_white
 }
+
+fun FolderUiModel.isDefaultOrEmptyId(): Boolean {
+    return !(this.isDefault || this.id.isEmpty())
+}

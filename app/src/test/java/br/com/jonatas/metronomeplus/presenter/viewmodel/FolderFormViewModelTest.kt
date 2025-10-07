@@ -215,7 +215,7 @@ class FolderFormViewModelTest {
                 folderUi = folder.toUiModel(),
                 barTitle = FolderFormTitleMode.ViewFolder,
                 songsUi = songs.toUiModelList(),
-                editableState = EditableState(isEditMode = false)
+                editableState = EditableState(isEditMode = false, isReorderingMode = true)
             )
 
             createViewModel(
@@ -251,7 +251,7 @@ class FolderFormViewModelTest {
                 folderUi = folder.toUiModel(),
                 barTitle = FolderFormTitleMode.EditFolder,
                 songsUi = songs.toUiModelList(),
-                editableState = EditableState(isEditMode = true)
+                editableState = EditableState(isEditMode = true, isReorderingMode = true)
             )
 
             createViewModel(
@@ -375,4 +375,89 @@ class FolderFormViewModelTest {
 
             collectionJob.cancel()
         }
+
+    @Test
+    fun `should enable reordering mode when it is not the default folder and the folderId is not empty`() =
+        runTest {
+            val folder = Folder("Folder1", "Folder 1", 0, 123L)
+
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = emptyList()
+            )
+
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.toList(states)
+            }
+
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            val actualReorderingMode = stateReady.result.editableState.isReorderingMode
+
+            assertTrue("Expected isReorderingMode enabled", actualReorderingMode)
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+
+            collectionJob.cancel()
+        }
+
+    @Test
+    fun `should not enable reordering mode when it is the default folder`() = runTest {
+        val folder = Folder("DefaultFolder", "All Songs", 0, 123L, true)
+
+        createViewModel(
+            folderId = folder.id,
+            folderToReturn = folder,
+            songsToReturn = emptyList()
+        )
+
+        val states = mutableListOf<UiState<FolderFormUiState>>()
+        val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+        val actualReorderingMode = stateReady.result.editableState.isReorderingMode
+
+        assertFalse("Expected isReorderingMode disabled", actualReorderingMode)
+
+        coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+        coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+
+        collectionJob.cancel()
+    }
+
+    @Test
+    fun `should not enable reordering mode when it is the empty folderId`() = runTest {
+        val folder = Folder("", "", 0, 0L, false)
+
+        createViewModel(
+            folderId = folder.id,
+            folderToReturn = folder,
+            songsToReturn = emptyList()
+        )
+
+        val states = mutableListOf<UiState<FolderFormUiState>>()
+        val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.uiState.toList(states)
+        }
+
+        mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+        val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+        val actualReorderingMode = stateReady.result.editableState.isReorderingMode
+
+        assertFalse("Expected isReorderingMode false", actualReorderingMode)
+
+        coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+        coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+
+        collectionJob.cancel()
+    }
 }

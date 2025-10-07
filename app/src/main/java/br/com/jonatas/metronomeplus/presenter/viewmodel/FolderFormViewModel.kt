@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.song.GetSongsByFolderUseCase
 import br.com.jonatas.metronomeplus.domain.util.filter.filterSongs
+import br.com.jonatas.metronomeplus.presenter.extension.isDefaultOrEmptyId
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
@@ -58,7 +59,9 @@ class FolderFormViewModel @Inject constructor(
                     folderUi = folder.toUiModel(),
                     barTitle = barTitle,
                     songsUi = filteredList.toUiModelList(),
-                    editableState = editableState
+                    editableState = editableState.copy(
+                        isReorderingMode = folder.toUiModel().isDefaultOrEmptyId()
+                    )
                 )
             }
         }.map { completeState ->
