@@ -3,6 +3,7 @@ package br.com.jonatas.metronomeplus.presenter.ui.adapter
 import android.annotation.SuppressLint
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -95,7 +96,8 @@ class FolderFormSongsAdapter @Inject constructor() :
         private lateinit var songUi: SongUiModel
         private val handler = Handler(Looper.getMainLooper())
         private val vibrator = itemView.context.getSystemService(Vibrator::class.java)
-        private var longPressTriggered = false
+        private var downTime = 0L
+        private var eventTimeUp = 0L
 
         init {
             setAllListeners()
@@ -153,6 +155,7 @@ class FolderFormSongsAdapter @Inject constructor() :
                         MotionEvent.ACTION_DOWN -> {
                             handler.removeCallbacksAndMessages(null)
                             view.isPressed = true
+                            downTime = SystemClock.uptimeMillis()
 
                             if (editableState.isEditMode) {
                                 if (::songUi.isInitialized && !editableState.isListEditMode) {
@@ -172,14 +175,15 @@ class FolderFormSongsAdapter @Inject constructor() :
 
                         MotionEvent.ACTION_UP -> {
                             handler.removeCallbacksAndMessages(null)
+                            eventTimeUp = SystemClock.uptimeMillis()
+
                             if (view.isPressed) {
-                                view.isPressed = false
-                                if (!longPressTriggered) {
+                                if (eventTimeUp - downTime < DRAG_LONG_CLICK_DELAY) {
                                     if (::songUi.isInitialized && !editableState.isEditMode) {
                                         callbacks?.onItemClicked(songUi.id)
                                     }
                                 }
-                                longPressTriggered = false
+                                view.isPressed = false
                             }
                             return@setOnTouchListener true
                         }
@@ -187,7 +191,6 @@ class FolderFormSongsAdapter @Inject constructor() :
                         MotionEvent.ACTION_CANCEL -> {
                             handler.removeCallbacksAndMessages(null)
                             view.isPressed = false
-                            longPressTriggered = false
                             return@setOnTouchListener true
                         }
 
@@ -204,7 +207,6 @@ class FolderFormSongsAdapter @Inject constructor() :
 
         private fun executeCallback(duration: Long, callback: () -> Unit) {
             val runnable = Runnable {
-                longPressTriggered = true
                 vibrator.vibrateHeavyClick()
                 callback.invoke()
             }

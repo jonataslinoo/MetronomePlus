@@ -35,6 +35,7 @@ import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.mockito.kotlin.any
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.shadows.ShadowLooper
 import java.util.concurrent.TimeUnit
@@ -79,6 +80,7 @@ class FolderFormSongsAdapterTest {
         clearAllMocks()
     }
 
+    //region adapter data binding and visibility (EditableState)
     @Test
     fun `should returns zero size when receiving`() {
         assertTrue(songsAdapter.currentList.isEmpty())
@@ -168,29 +170,52 @@ class FolderFormSongsAdapterTest {
         assertTrue(mockBinding.songItemDragDrop.isInvisible)
         assertTrue(mockBinding.songItemSelected.isVisible)
     }
+    //endregion
 
+    //region onItemClicked
     @Test
-    fun `should return songId when clicking on the root view`() {
-        val position = 0
-        val songUi = testSongs[position]
-        val slot = slot<String>()
-        every { mockCallbacks.onItemClicked(capture(slot)) } just Runs
+    fun `should not trigger the other callbacks only onItemClicked when clicking on the root view`() {
+        every { mockCallbacks.onItemClicked(any()) } just Runs
         songsAdapter.editableState = EditableState(isEditMode = false)
         songsAdapter.setCallbacks(callbacks = mockCallbacks)
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
-        songsAdapter.onBindViewHolder(viewHolder, position)
+        songsAdapter.onBindViewHolder(viewHolder, 0)
 
         performShortClick(viewHolder.itemView)
 
-        val capturedId = slot.captured
-        assertEquals(songUi.id, capturedId)
-
-        verify(exactly = 1) { mockCallbacks.onItemClicked(songUi.id) }
+        verify(exactly = 1) { mockCallbacks.onItemClicked(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMenuClicked(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMove(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
     }
 
     @Test
-    fun `should not return songId when clicking on the root view before bind`() {
+    fun `should return correct songId when the view holder is recycled and rebound`() {
+        val position1 = 0
+        val position2 = 1
+        val songUi1 = testSongs[position1]
+        val songUi2 = testSongs[position2]
+        val capturedIds = mutableListOf<String>()
+        every { mockCallbacks.onItemClicked(capture(capturedIds)) } just Runs
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        songsAdapter.onBindViewHolder(viewHolder, position1)
+        performShortClick(viewHolder.itemView)
+
+        songsAdapter.onBindViewHolder(viewHolder, position2)
+        performShortClick(viewHolder.itemView)
+
+        assertEquals(songUi1.id, capturedIds[0])
+        assertEquals(songUi2.id, capturedIds[1])
+        verify(exactly = 2) { mockCallbacks.onItemClicked(any()) }
+    }
+
+    @Test
+    fun `should not call onItemClicked callback when clicking on the root view before bind`() {
         songsAdapter.setCallbacks(callbacks = mockCallbacks)
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
@@ -201,32 +226,7 @@ class FolderFormSongsAdapterTest {
     }
 
     @Test
-    fun `should return correct songId when the view holder is recycled and rebound`() {
-        val position = 0
-        val position2 = 1
-        val songUi1 = testSongs[position]
-        val songUi2 = testSongs[position2]
-        val slot = slot<String>()
-        every { mockCallbacks.onItemClicked(capture(slot)) } just Runs
-        songsAdapter.setCallbacks(callbacks = mockCallbacks)
-        songsAdapter.submitList(testSongs)
-        ShadowLooper.idleMainLooper()
-
-        songsAdapter.onBindViewHolder(viewHolder, position)
-        performShortClick(viewHolder.itemView)
-
-        assertEquals(songUi1.id, slot.captured)
-
-        songsAdapter.onBindViewHolder(viewHolder, position2)
-        performShortClick(viewHolder.itemView)
-
-        assertEquals(songUi2.id, slot.captured)
-
-        verify(exactly = 2) { mockCallbacks.onItemClicked(any()) }
-    }
-
-    @Test
-    fun `should not crash when clicked and callbacks are null`() {
+    fun `should not crash when clicked and onItemClicked callbacks are null`() {
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, 0)
@@ -237,35 +237,51 @@ class FolderFormSongsAdapterTest {
             fail("Clicking root view crashes the application with null callbacks: ${e.message}")
         }
     }
+    //endregion
 
+    //region onItemMenuClicked
     @Test
     fun `should return the songId and anchorView when clicking on the songItemOptions view`() {
         val position = 0
         val songUi = testSongs[position]
-
-        val slot = slot<String>()
+        val slotId = slot<String>()
         val slotView = slot<View>()
-        every { mockCallbacks.onItemMenuClicked(capture(slot), capture(slotView)) } just Runs
-
+        every { mockCallbacks.onItemMenuClicked(capture(slotId), capture(slotView)) } just Runs
         songsAdapter.setCallbacks(mockCallbacks)
-
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, position)
 
         mockBinding.songItemOptions.performClick()
 
-        val capturedId = slot.captured
-        val capturedView = slotView.captured
-        assertEquals(songUi.id, capturedId)
-        assertEquals(mockBinding.songItemOptions, capturedView)
-
+        assertEquals(songUi.id, slotId.captured)
+        assertEquals(mockBinding.songItemOptions, slotView.captured)
         verify(exactly = 1) {
-            mockCallbacks.onItemMenuClicked(
-                songUi.id,
-                mockBinding.songItemOptions
-            )
+            mockCallbacks.onItemMenuClicked(songUi.id, mockBinding.songItemOptions)
         }
+    }
+
+    @Test
+    fun `should return correct songId and anchorView when the view holder is recycled and rebound`() {
+        val position = 0
+        val position2 = 1
+        val songUi1 = testSongs[position]
+        val songUi2 = testSongs[position2]
+        val capturedIds = mutableListOf<String>()
+        every { mockCallbacks.onItemMenuClicked(capture(capturedIds), any()) } just Runs
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        songsAdapter.onBindViewHolder(viewHolder, position)
+        mockBinding.songItemOptions.performClick()
+
+        songsAdapter.onBindViewHolder(viewHolder, position2)
+        mockBinding.songItemOptions.performClick()
+
+        assertEquals(songUi1.id, capturedIds[0])
+        assertEquals(songUi2.id, capturedIds[1])
+        verify(exactly = 2) { mockCallbacks.onItemMenuClicked(any(), any()) }
     }
 
     @Test
@@ -276,40 +292,7 @@ class FolderFormSongsAdapterTest {
 
         mockBinding.songItemOptions.performClick()
 
-        verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
-    }
-
-    @Test
-    fun `should return correct songId and anchorView when the view holder is recycled and rebound`() {
-        val position = 0
-        val songUi1 = testSongs[position]
-
-        val slot = slot<String>()
-        val slotView = slot<View>()
-        every { mockCallbacks.onItemMenuClicked(capture(slot), capture(slotView)) } just Runs
-
-        songsAdapter.setCallbacks(callbacks = mockCallbacks)
-        songsAdapter.submitList(testSongs)
-        ShadowLooper.idleMainLooper()
-
-        songsAdapter.onBindViewHolder(viewHolder, position)
-        val viewOptions = mockBinding.songItemOptions
-        viewOptions.performClick()
-
-        assertEquals(songUi1.id, slot.captured)
-        assertEquals(viewOptions, slotView.captured)
-
-        val position2 = 1
-        val songUi2 = testSongs[position2]
-
-        songsAdapter.onBindViewHolder(viewHolder, position2)
-        val viewOptions2 = mockBinding.songItemOptions
-        viewOptions2.performClick()
-
-        assertEquals(songUi2.id, slot.captured)
-        assertEquals(viewOptions2, slotView.captured)
-
-        verify(exactly = 2) { mockCallbacks.onItemMenuClicked(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMenuClicked(any(), any()) }
     }
 
     @Test
@@ -324,12 +307,13 @@ class FolderFormSongsAdapterTest {
             fail("Clicking songItemOptions crashes the application with null callbacks: ${e.message}")
         }
     }
+    //endregion
 
+    //region onListEditMode
     @Test
-    fun `should not execute long click callback on the root view when edit mode is disabled`() {
-        every { mockCallbacks.onItemClicked(any()) } just Runs
+    fun `should not trigger the other callbacks only onListEditMode when performing a long click on the root view`() {
         every { mockCallbacks.onListEditMode(any(), any()) } just Runs
-        songsAdapter.editableState = EditableState(isEditMode = false)
+        songsAdapter.editableState = EditableState(isEditMode = true)
         songsAdapter.setCallbacks(mockCallbacks)
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
@@ -337,12 +321,15 @@ class FolderFormSongsAdapterTest {
 
         performLongClick(viewHolder.itemView, DEFAULT_LONG_CLICK_DURATION)
 
-        verify(exactly = 1) { mockCallbacks.onItemClicked(any()) }
-        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
+        verify(exactly = 1) { mockCallbacks.onListEditMode(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMenuClicked(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMove(any(), any()) }
     }
 
     @Test
-    fun `should execute the callback and enable list edit mode when a long click is performed in edit mode`() {
+    fun `should enable onListEditMode when performing a long click in edit mode`() {
         val position = 0
         val songUi = testSongs[position]
         val slotId = slot<String>()
@@ -358,12 +345,25 @@ class FolderFormSongsAdapterTest {
 
         assertEquals(songUi.id, slotId.captured)
         assertEquals(true, slotState.captured)
-
         verify(exactly = 1) { mockCallbacks.onListEditMode(songUi.id, true) }
     }
 
     @Test
-    fun `should not enable list edit mode when gesture is cancelled`() {
+    fun `should not execute onListEditMode callback on the root view when edit mode is disabled`() {
+        every { mockCallbacks.onListEditMode(any(), any()) } just Runs
+        songsAdapter.editableState = EditableState(isEditMode = false)
+        songsAdapter.setCallbacks(mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        performLongClick(viewHolder.itemView, DEFAULT_LONG_CLICK_DURATION)
+
+        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
+    }
+
+    @Test
+    fun `should not execute onListEditMode callback when gesture is cancelled`() {
         every { mockCallbacks.onListEditMode(any(), any()) } just Runs
         songsAdapter.editableState = EditableState(isEditMode = true)
         songsAdapter.setCallbacks(mockCallbacks)
@@ -378,7 +378,7 @@ class FolderFormSongsAdapterTest {
     }
 
     @Test
-    fun `should not execute the long click callback in the root view when in list edit mode`() {
+    fun `should not execute onListEditMode callback in the root view when in list edit mode`() {
         every { mockCallbacks.onListEditMode(any(), any()) } just Runs
         songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
         songsAdapter.setCallbacks(mockCallbacks)
@@ -392,7 +392,20 @@ class FolderFormSongsAdapterTest {
     }
 
     @Test
-    fun `should not crash when long clicked on root view and callbacks are null`() {
+    fun `should not execute onListEditMode callback when performing a long click on the root view before bind`() {
+        songsAdapter.editableState = EditableState(isEditMode = true)
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        performLongClick(viewHolder.itemView, DEFAULT_LONG_CLICK_DURATION)
+
+        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
+    }
+
+    @Test
+    fun `should not crash when performing a long click on root view and callbacks are null`() {
+        songsAdapter.editableState = EditableState(isEditMode = true)
         songsAdapter.submitList(testSongs)
         ShadowLooper.idleMainLooper()
         songsAdapter.onBindViewHolder(viewHolder, 0)
@@ -403,6 +416,7 @@ class FolderFormSongsAdapterTest {
             fail("Long clicking root view crashes the application with null callbacks: ${e.message}")
         }
     }
+    //endregion
 
     @Test
     fun `should not execute item clicked callback when in list edit mode`() {
@@ -418,8 +432,41 @@ class FolderFormSongsAdapterTest {
         verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
     }
 
+    //region onItemMove
     @Test
-    fun `Should trigger drag and drop when middle press and drag is performed with editableState fully enabled`() {
+    fun `should not trigger other callbacks only onItemMove when dragging is initiated`() {
+        every { mockCallbacks.onItemMove(any(), any()) } just Runs
+        songsAdapter.setCallbacks(mockCallbacks)
+
+        songsAdapter.onRowMove(any(), any())
+
+        verify(exactly = 1) { mockCallbacks.onItemMove(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMenuClicked(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
+    }
+
+    @Test
+    fun `should trigger onItemMove callback when dragging is initiated`() {
+        val fromPosition = 0
+        val toPosition = 2
+        val slotFromPosition = slot<Int>()
+        val slotToPosition = slot<Int>()
+        every {
+            mockCallbacks.onItemMove(capture(slotFromPosition), capture(slotToPosition))
+        } just Runs
+        songsAdapter.setCallbacks(mockCallbacks)
+
+        songsAdapter.onRowMove(fromPosition, toPosition)
+
+        assertEquals(fromPosition, slotFromPosition.captured)
+        assertEquals(toPosition, slotToPosition.captured)
+        verify(exactly = 1) { mockCallbacks.onItemMove(fromPosition, toPosition) }
+    }
+
+    @Test
+    fun `should trigger drag and drop when pressed for 200 ms with editableState fully enabled`() {
         every { mockItemTouchHelper.startDrag(viewHolder) } just Runs
         songsAdapter.editableState =
             EditableState(isEditMode = true, isListEditMode = true, isReorderingMode = true)
@@ -462,23 +509,5 @@ class FolderFormSongsAdapterTest {
 
         verify(exactly = 0) { mockItemTouchHelper.startDrag(viewHolder) }
     }
-
-    @Test
-    fun `should trigger the item move callback when dragging is initiated`() {
-        val fromPosition = 0
-        val toPosition = 2
-        val slotFromPosition = slot<Int>()
-        val slotToPosition = slot<Int>()
-        every {
-            mockCallbacks.onItemMove(capture(slotFromPosition), capture(slotToPosition))
-        } just Runs
-        songsAdapter.setCallbacks(mockCallbacks)
-
-        songsAdapter.onRowMove(fromPosition, toPosition)
-
-        assertEquals(fromPosition, slotFromPosition.captured)
-        assertEquals(toPosition, slotToPosition.captured)
-
-        verify(exactly = 1) { mockCallbacks.onItemMove(fromPosition, toPosition) }
-    }
+    //endregion
 }
