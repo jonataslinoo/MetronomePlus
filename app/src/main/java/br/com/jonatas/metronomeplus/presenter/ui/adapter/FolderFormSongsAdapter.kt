@@ -121,6 +121,8 @@ class FolderFormSongsAdapter @Inject constructor() :
 
                 songItemBeatListview.updateBeats(newBeats = songUi.beatPatterns)
 
+                songItemSelected.isChecked = songUi.selected
+
                 applyListEditingMode(editableState)
             }
         }
@@ -179,8 +181,14 @@ class FolderFormSongsAdapter @Inject constructor() :
 
                             if (view.isPressed) {
                                 if (eventTimeUp - downTime < DRAG_LONG_CLICK_DELAY) {
-                                    if (::songUi.isInitialized && !editableState.isEditMode) {
-                                        callbacks?.onItemClicked(songUi.id)
+                                    if (::songUi.isInitialized) {
+                                        if (!editableState.isEditMode) {
+                                            callbacks?.onItemClicked(songUi.id)
+                                        } else {
+                                            if (editableState.isListEditMode) {
+                                                callbacks?.onItemSelectionToggle(songUi.id)
+                                            }
+                                        }
                                     }
                                 }
                                 view.isPressed = false
@@ -201,6 +209,16 @@ class FolderFormSongsAdapter @Inject constructor() :
                 songItemOptions.setOnClickListener {
                     if (::songUi.isInitialized)
                         callbacks?.onItemMenuClicked(songUi.id, it)
+                }
+
+                songItemSelected.setOnClickListener {
+                    if (::songUi.isInitialized) {
+                        if (callbacks != null) {
+                            callbacks?.onItemSelectionToggle(songUi.id)
+                        } else {
+                            songItemSelected.isChecked = false
+                        }
+                    }
                 }
             }
         }

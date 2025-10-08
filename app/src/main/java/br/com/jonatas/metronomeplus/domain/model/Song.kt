@@ -7,4 +7,5 @@ data class Song(
     val bpm: Int,
     val timeSignature: TimeSignature,
     val beatPatterns: List<Beat>,
+    val selected: Boolean = false,
 )

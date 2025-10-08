@@ -30,6 +30,7 @@ import io.mockk.slot
 import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -233,6 +234,8 @@ class FolderFormSongsAdapterTest {
 
         try {
             performShortClick(viewHolder.itemView)
+
+            verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
         } catch (e: Exception) {
             fail("Clicking root view crashes the application with null callbacks: ${e.message}")
         }
@@ -412,25 +415,13 @@ class FolderFormSongsAdapterTest {
 
         try {
             performLongClick(viewHolder.itemView, DEFAULT_LONG_CLICK_DURATION)
+
+            verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
         } catch (e: Exception) {
             fail("Long clicking root view crashes the application with null callbacks: ${e.message}")
         }
     }
     //endregion
-
-    @Test
-    fun `should not execute item clicked callback when in list edit mode`() {
-        every { mockCallbacks.onItemClicked(any()) } just Runs
-        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
-        songsAdapter.setCallbacks(mockCallbacks)
-        songsAdapter.submitList(testSongs)
-        ShadowLooper.idleMainLooper()
-        songsAdapter.onBindViewHolder(viewHolder, 0)
-
-        performShortClick(viewHolder.itemView)
-
-        verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
-    }
 
     //region onItemMove
     @Test
@@ -508,6 +499,211 @@ class FolderFormSongsAdapterTest {
         performLongClick(viewHolder.itemView, DRAG_LONG_CLICK_DELAY)
 
         verify(exactly = 0) { mockItemTouchHelper.startDrag(viewHolder) }
+    }
+
+    @Test
+    fun `should not crash when pressed for 200 ms and callbacks are null`() {
+        songsAdapter.editableState =
+            EditableState(isEditMode = true, isListEditMode = true, isReorderingMode = true)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        try {
+            performLongClick(viewHolder.itemView, DRAG_LONG_CLICK_DELAY)
+
+            verify(exactly = 0) { mockItemTouchHelper.startDrag(viewHolder) }
+        } catch (e: Exception) {
+            fail("Pressed for 200 ms on root view crashes the application with null callbacks: ${e.message}")
+        }
+    }
+
+    @Test
+    fun `should not crash when dragging is initiated and callbacks are null`() {
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        try {
+            songsAdapter.onRowMove(any(), any())
+
+            verify(exactly = 0) { mockCallbacks.onItemMove(any(), any()) }
+        } catch (e: Exception) {
+            fail("Dragging crashes the application with null callbacks: ${e.message}")
+        }
+    }
+
+    //endregion
+
+    //region onItemSelectionToggle checkbox
+    @Test
+    fun `should not trigger the other callbacks only onItemSelectionToggle when clicking on the checkbox`() {
+        every { mockCallbacks.onItemSelectionToggle(any()) } just Runs
+        songsAdapter.setCallbacks(mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        mockBinding.songItemSelected.performClick()
+
+        verify(exactly = 1) { mockCallbacks.onItemSelectionToggle(any()) }
+        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMenuClicked(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMove(any(), any()) }
+    }
+
+    @Test
+    fun `should return correct songId when clicking on the checkbox`() {
+        val position = 1
+        val songId = testSongs[position].id
+        val slotId = slot<String>()
+        every { mockCallbacks.onItemSelectionToggle(capture(slotId)) } just Runs
+        songsAdapter.setCallbacks(mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, position)
+
+        mockBinding.songItemSelected.performClick()
+
+        assertTrue(mockBinding.songItemSelected.isChecked)
+        assertEquals(songId, slotId.captured)
+        verify(exactly = 1) { mockCallbacks.onItemSelectionToggle(songId) }
+    }
+
+    @Test
+    fun `should return correct songId when clicking on the checkbox and the view holder is recycled and rebound`() {
+        val position = 0
+        val position2 = 1
+        val songUi1 = testSongs[position]
+        val songUi2 = testSongs[position2]
+        val capturedIds = mutableListOf<String>()
+        every { mockCallbacks.onItemSelectionToggle(capture(capturedIds)) } just Runs
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        songsAdapter.onBindViewHolder(viewHolder, position)
+        mockBinding.songItemSelected.performClick()
+        songsAdapter.onBindViewHolder(viewHolder, position2)
+        mockBinding.songItemSelected.performClick()
+
+        assertEquals(songUi1.id, capturedIds[0])
+        assertEquals(songUi2.id, capturedIds[1])
+        verify(exactly = 2) { mockCallbacks.onItemSelectionToggle(any()) }
+    }
+
+    @Test
+    fun `should not return songId when clicking on the checkbox before bind`() {
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        mockBinding.songItemSelected.performClick()
+
+        verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+    }
+
+    @Test
+    fun `should not crash when clicked on checkbox and callbacks are null`() {
+        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        try {
+            mockBinding.songItemSelected.performClick()
+
+            assertFalse(mockBinding.songItemSelected.isChecked)
+
+            verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+        } catch (e: Exception) {
+            fail("Clicking checkbox crashes the application with null callbacks: ${e.message}")
+        }
+    }
+    //endregion
+
+    //region onItemSelectionToggle root view
+    @Test
+    fun `should not trigger the other callbacks only onItemSelectionToggle when clicking on the root view`() {
+        every { mockCallbacks.onItemSelectionToggle(any()) } just Runs
+        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
+        songsAdapter.setCallbacks(mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        performShortClick(viewHolder.itemView)
+
+        verify(exactly = 1) { mockCallbacks.onItemSelectionToggle(any()) }
+        verify(exactly = 0) { mockCallbacks.onListEditMode(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemClicked(any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMenuClicked(any(), any()) }
+        verify(exactly = 0) { mockCallbacks.onItemMove(any(), any()) }
+    }
+
+    @Test
+    fun `should trigger onItemSelectionToggle with correct songId when clicking on the root view and the view holder is recycled and rebound`() {
+        val position = 0
+        val position2 = 2
+        val songUi = testSongs[position]
+        val songUi2 = testSongs[position2]
+        val capturedIds = mutableListOf<String>()
+        every { mockCallbacks.onItemSelectionToggle(capture(capturedIds)) } just Runs
+        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        songsAdapter.onBindViewHolder(viewHolder, position)
+        performShortClick(viewHolder.itemView)
+        songsAdapter.onBindViewHolder(viewHolder, position2)
+        performShortClick(viewHolder.itemView)
+
+        assertEquals(songUi.id, capturedIds[0])
+        assertEquals(songUi2.id, capturedIds[1])
+        verify(exactly = 2) { mockCallbacks.onItemSelectionToggle(any()) }
+    }
+
+    @Test
+    fun `should not trigger onItemSelectionToggle when clicking on the root view when edit mode enable but list edit mode is disabled`() {
+        every { mockCallbacks.onItemSelectionToggle(any()) } just Runs
+        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = false)
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        performShortClick(viewHolder.itemView)
+
+        verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+    }
+
+    @Test
+    fun `should not trigger onItemSelectionToggle when clicking on the root view before bind`() {
+        songsAdapter.setCallbacks(callbacks = mockCallbacks)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+
+        performShortClick(viewHolder.itemView)
+
+        verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+    }
+
+    @Test
+    fun `should not crash when clicked in the root view with onItemSelectionToggle and callbacks are null`() {
+        songsAdapter.editableState = EditableState(isEditMode = true, isListEditMode = true)
+        songsAdapter.submitList(testSongs)
+        ShadowLooper.idleMainLooper()
+        songsAdapter.onBindViewHolder(viewHolder, 0)
+
+        try {
+            performShortClick(viewHolder.itemView)
+
+            verify(exactly = 0) { mockCallbacks.onItemSelectionToggle(any()) }
+        } catch (e: Exception) {
+            fail("Clicking root view crashes the application with null callbacks: ${e.message}")
+        }
     }
     //endregion
 }

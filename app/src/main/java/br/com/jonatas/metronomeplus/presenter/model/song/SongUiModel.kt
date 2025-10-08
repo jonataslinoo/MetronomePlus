@@ -9,5 +9,6 @@ data class SongUiModel(
     val artist: String,
     val bpm: Int,
     val timeSignature: TimeSignatureUiModel,
-    val beatPatterns: List<BeatUiModel>
+    val beatPatterns: List<BeatUiModel>,
+    val selected: Boolean = false,
 )

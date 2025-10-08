@@ -11,6 +11,7 @@ fun Song.toUiModel(): SongUiModel = SongUiModel(
     bpm = bpm,
     timeSignature = timeSignature.toUiModel(),
     beatPatterns = beatPatterns.map { it.toUiModel() },
+    selected = selected
 )
 
 fun List<Song>.toUiModelList(): List<SongUiModel> = map { it.toUiModel() }
