@@ -3,6 +3,7 @@ package br.com.jonatas.metronomeplus.presenter.viewmodel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import br.com.jonatas.metronomeplus.domain.model.Song
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.song.GetSongsByFolderUseCase
 import br.com.jonatas.metronomeplus.domain.util.filter.filterSongs
@@ -37,6 +38,7 @@ class FolderFormViewModel @Inject constructor(
     private val folderId: String? = savedStateHandle["id"]
     private val _searchSongInfo = MutableStateFlow<String>("")
     private val _editableState = MutableStateFlow(EditableState(isEditMode = folderId == null))
+    private val _selectedSetIds = MutableStateFlow<Set<String>>(emptySet())
 
     private val initialFolderFlow = flow {
         emit(getFolderUseCase(folderId = folderId))
@@ -49,11 +51,14 @@ class FolderFormViewModel @Inject constructor(
                 getSongsByFolderUseCase(folder = folder),
                 _searchSongInfo,
                 _editableState,
-            ) { songs, query, editableState ->
+                _selectedSetIds,
+            ) { songs, query, editableState, selectedSetIds ->
 
                 val barTitle = getBarTitle(editableState.isEditMode)
 
-                val filteredList = songs.filterSongs(query)
+                val selectedSongs = selectSongs(songs, selectedSetIds)
+
+                val filteredList = selectedSongs.filterSongs(query)
 
                 FolderFormUiState(
                     folderUi = folder.toUiModel(),
@@ -74,6 +79,13 @@ class FolderFormViewModel @Inject constructor(
             initialValue = UiState.Loading
         )
 
+    private fun selectSongs(songs: List<Song>, selectedSetIds: Set<String>): List<Song> {
+        return songs.map { song ->
+            if (song.id in selectedSetIds) song.copy(selected = !song.selected)
+            else song
+        }
+    }
+
     private fun getBarTitle(isEditing: Boolean): FolderFormTitleMode {
         return if (folderId != null) {
             if (isEditing) FolderFormTitleMode.EditFolder
@@ -93,5 +105,14 @@ class FolderFormViewModel @Inject constructor(
 
     fun enableListEditMode(enable: Boolean) {
         _editableState.update { it.copy(isListEditMode = enable) }
+    }
+
+    fun toggleItemSelection(songId: String) {
+        _selectedSetIds.update {
+            val selectedIds = it.toMutableSet()
+            if (songId in selectedIds) selectedIds.remove(songId)
+            else selectedIds.add(songId)
+            selectedIds
+        }
     }
 }

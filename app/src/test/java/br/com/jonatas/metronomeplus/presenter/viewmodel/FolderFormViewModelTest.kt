@@ -460,4 +460,104 @@ class FolderFormViewModelTest {
 
         collectionJob.cancel()
     }
+
+    @Test
+    fun `should select a song when receive a valid songId`() = runTest {
+        val folder = Folder("Folder1", "Folder 1", 0, 123L)
+        val songs = Fixtures.mockAllSongsDto().toDomainList()
+        val songId = songs[0].id
+        val expectedSongs = songs.map { song ->
+            if (song.id == songId) song.copy(selected = !song.selected)
+            else song
+        }
+        createViewModel(
+            folderId = folder.id,
+            folderToReturn = folder,
+            songsToReturn = songs
+        )
+        collectUiStates { states ->
+
+            viewModel.toggleItemSelection(songId)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            assertEquals(expectedSongs.toUiModelList(), stateReady.result.songsUi)
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+        }
+    }
+
+    @Test
+    fun `should toggle the selection state of song when receiving the same songId`() = runTest {
+        val folder = Folder("Folder1", "Folder 1", 0, 123L)
+        val songs = Fixtures.mockAllSongsDto().toDomainList()
+        val songId = songs[0].id
+        val expectedSongs = songs.map { song ->
+            if (song.id == songId) song.copy(selected = true)
+            else song
+        }
+        val expectedSongs2 = songs.map { song ->
+            if (song.id == songId) song.copy(selected = false)
+            else song
+        }
+
+        createViewModel(
+            folderId = folder.id,
+            folderToReturn = folder,
+            songsToReturn = songs
+        )
+        collectUiStates { states ->
+
+            viewModel.toggleItemSelection(songId)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            assertEquals(expectedSongs.toUiModelList(), stateReady.result.songsUi)
+
+            viewModel.toggleItemSelection(songId)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateReady2 = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            assertEquals(expectedSongs2.toUiModelList(), stateReady2.result.songsUi)
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+        }
+    }
+
+    @Test
+    fun `should do nothing when receiving a non-existing songId`() = runTest {
+        val folder = Folder("Folder1", "Folder 1", 0, 123L)
+        val songs = Fixtures.mockAllSongsDto().toDomainList()
+        val songId = ""
+        createViewModel(
+            folderId = folder.id,
+            folderToReturn = folder,
+            songsToReturn = songs
+        )
+        collectUiStates { states ->
+
+            viewModel.toggleItemSelection(songId)
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+            assertEquals(songs.toUiModelList(), stateReady.result.songsUi)
+
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+        }
+    }
+
+    private fun collectUiStates(execute: (states: MutableList<UiState<FolderFormUiState>>) -> Unit) =
+        runTest {
+            val states = mutableListOf<UiState<FolderFormUiState>>()
+            val job = launch(UnconfinedTestDispatcher(testScheduler)) {
+                viewModel.uiState.collect(states::add)
+            }
+
+            execute(states)
+
+            job.cancel()
+        }
 }

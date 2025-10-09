@@ -148,7 +148,9 @@ class FolderFormFragment : Fragment() {
                         showMessage(root, "onClick menu $songId - $view")
                     },
                     onItemMove = { fromPosition, toPosition -> },
-                    onItemSelectionToggle = { songId -> },
+                    onItemSelectionToggle = { songId ->
+                        viewModel.toggleItemSelection(songId)
+                    },
                     onListEditMode = { songId, enable ->
                         showMessage(binding.root, "$songId")
                         viewModel.enableListEditMode(enable) },
