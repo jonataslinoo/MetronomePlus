@@ -65,6 +65,7 @@ class FolderFormViewModel @Inject constructor(
                     barTitle = barTitle,
                     songsUi = filteredList.toUiModelList(),
                     editableState = editableState.copy(
+                        isListEditMode = if (selectedSetIds.isEmpty()) false else editableState.isListEditMode,
                         isReorderingMode = folder.toUiModel().isDefaultOrEmptyId()
                     )
                 )

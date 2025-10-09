@@ -351,7 +351,8 @@ class FolderFormViewModelTest {
 
                 viewModel.enableListEditModeAndSelectSong(songId, false)
                 mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
-                val editDisabled = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+                val editDisabled =
+                    states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
 
                 assertTrue(
                     "Expected isListEditMode enabled",
@@ -388,6 +389,46 @@ class FolderFormViewModelTest {
 
                 val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
                 assertEquals(expectedSongs.toUiModelList(), stateReady.result.songsUi)
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+            }
+        }
+
+    @Test
+    fun `should disable list edit mode when enableListEditModeAndSelectSong receives the same last songId`() =
+        runTest {
+            val folder = Folder("Folder1", "Folder 1", 5, 123L)
+            val songs = Fixtures.mockAllSongsDto().toDomainList()
+            val songId = songs[0].id
+            val expectedSongsSelected = songs.map { song ->
+                if (song.id == songId) song.copy(selected = true)
+                else song
+            }
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
+            )
+            collectUiStates { states ->
+
+                viewModel.enableListEditModeAndSelectSong(songId, true)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+                val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+                viewModel.enableListEditModeAndSelectSong(songId, true)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+                val stateReady2 = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+                assertEquals(expectedSongsSelected.toUiModelList(), stateReady.result.songsUi)
+                assertTrue(
+                    "Expected listEditMode enabled",
+                    stateReady.result.editableState.isListEditMode
+                )
+                assertEquals(songs.toUiModelList(), stateReady2.result.songsUi)
+                assertFalse(
+                    "Expected listEditMode disabled",
+                    stateReady2.result.editableState.isListEditMode
+                )
                 coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
                 coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
             }
@@ -565,6 +606,46 @@ class FolderFormViewModelTest {
             coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
         }
     }
+
+    @Test
+    fun `should disable list edit mode when toggleItemSelection receives the same last songId`() =
+        runTest {
+            val folder = Folder("Folder1", "Folder 1", 0, 123L)
+            val songs = Fixtures.mockAllSongsDto().toDomainList()
+            val songId = songs[0].id
+            val expectedSongsSelected = songs.map { song ->
+                if (song.id == songId) song.copy(selected = true)
+                else song
+            }
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
+            )
+            collectUiStates { states ->
+
+                viewModel.enableListEditModeAndSelectSong(songId, true)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+                val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+                viewModel.toggleItemSelection(songId)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+                val stateReady2 = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+                assertEquals(expectedSongsSelected.toUiModelList(), stateReady.result.songsUi)
+                assertTrue(
+                    "Expected listEditMode enabled",
+                    stateReady.result.editableState.isListEditMode
+                )
+                assertEquals(songs.toUiModelList(), stateReady2.result.songsUi)
+                assertFalse(
+                    "Expected listEditMode disabled",
+                    stateReady2.result.editableState.isListEditMode
+                )
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+            }
+        }
 
     private fun collectUiStates(execute: (states: MutableList<UiState<FolderFormUiState>>) -> Unit) =
         runTest {
