@@ -103,7 +103,8 @@ class FolderFormViewModel @Inject constructor(
         _editableState.update { it.copy(isEditMode = true) }
     }
 
-    fun enableListEditMode(enable: Boolean) {
+    fun enableListEditModeAndSelectSong(songId: String, enable: Boolean) {
+        toggleItemSelection(songId)
         _editableState.update { it.copy(isListEditMode = enable) }
     }
 

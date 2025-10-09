@@ -152,8 +152,8 @@ class FolderFormFragment : Fragment() {
                         viewModel.toggleItemSelection(songId)
                     },
                     onListEditMode = { songId, enable ->
-                        showMessage(binding.root, "$songId")
-                        viewModel.enableListEditMode(enable) },
+                        viewModel.enableListEditModeAndSelectSong(songId, enable)
+                    },
                 )
             )
         }
