@@ -147,7 +147,9 @@ class FolderFormFragment : Fragment() {
                     onItemMenuClicked = { songId, view ->
                         showMessage(root, "onClick menu $songId - $view")
                     },
-                    onItemMove = { fromPosition, toPosition -> },
+                    onItemMove = { fromPosition, toPosition ->
+                        viewModel.swapPositionItems(fromPosition, toPosition)
+                    },
                     onItemSelectionToggle = { songId ->
                         viewModel.toggleItemSelection(songId)
                     },

@@ -23,7 +23,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -35,6 +34,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import java.util.Collections
 
 @ExperimentalCoroutinesApi
 class FolderFormViewModelTest {
@@ -86,7 +86,8 @@ class FolderFormViewModelTest {
         viewModel = FolderFormViewModel(
             savedStateHandle = mockSavedStateHandle,
             getFolderUseCase = mockGetFolderUseCase,
-            getSongsByFolderUseCase = mockGetSongsByFolderUseCase
+            getSongsByFolderUseCase = mockGetSongsByFolderUseCase,
+            dispatcher = mainCoroutineRule.testDispatcher
         )
     }
 
@@ -94,14 +95,23 @@ class FolderFormViewModelTest {
     fun `should be initialized in the Loading state when FolderFormViewModel is called`() =
         runTest {
             val folderId = null
+            val emptyFolder = Folder.empty()
 
-            createViewModel(folderId = folderId)
+            //Act
+            createViewModel(
+                folderId = folderId,
+                folderToReturn = emptyFolder,
+                songsToReturn = emptyList()
+            )
+            collectUiStates { states ->
+                val stateLoading = states.filterIsInstance<UiState.Loading>().last()
 
-            val state = viewModel.uiState.value
-
-            assertEquals(UiState.Loading, state)
-
-            coVerify { mockGetFolderUseCase wasNot Called }
+                //Assert
+                assertEquals(1, states.size)
+                assertTrue("Expected a Loading State", stateLoading is UiState.Loading)
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folderId) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = emptyFolder) }
+            }
         }
 
     @Test
@@ -110,24 +120,22 @@ class FolderFormViewModelTest {
             val folderId = null
             val expectedException = RuntimeException("Data loading error")
 
-            createViewModel(
-                folderId = folderId,
-                exceptionToThrow = expectedException
-            )
+            //Act
+            createViewModel(exceptionToThrow = expectedException)
+            collectUiStates { states ->
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
 
-            val states = viewModel.uiState.take(2).toList()
-            val errorState = states[1] as UiState.Error
+                val stateError = states.filterIsInstance<UiState.Error>().last()
 
-            assertTrue("Expected Loading state", states[0] is UiState.Loading)
-            assertTrue("Expected Error state", states[1] is UiState.Error)
-            assertTrue(
-                "Error property should be a RuntimeException",
-                errorState.error is RuntimeException
-            )
-            assertEquals(expectedException.message, errorState.error.message)
-
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
-            coVerify { mockGetSongsByFolderUseCase wasNot Called }
+                //Assert
+                assertEquals(2, states.size)
+                assertTrue(
+                    "Error property should be a RuntimeException",
+                    stateError.error is RuntimeException
+                )
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId) }
+                coVerify { mockGetSongsByFolderUseCase wasNot Called }
+            }
         }
 
     @Test
@@ -172,7 +180,7 @@ class FolderFormViewModelTest {
     fun `should set the title to NewFolder and activate edit mode when receiving a invalid folderId`() =
         runTest {
             val folderId = null
-            val folder = Folder(id = "", name = "", musics = 0, date = 0L)
+            val folder = Folder.empty()
             val songs = emptyList<Song>()
             val expectedFolderFormUiState = FolderFormUiState(
                 folderUi = folder.toUiModel(),
@@ -180,30 +188,23 @@ class FolderFormViewModelTest {
                 songsUi = songs.toUiModelList(),
                 editableState = EditableState(isEditMode = true)
             )
-
+            //Act
             createViewModel(
                 folderId = folderId,
                 folderToReturn = folder,
                 songsToReturn = songs
             )
+            collectUiStates { states ->
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
 
-            val states = mutableListOf<UiState<FolderFormUiState>>()
-            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
-                viewModel.uiState.toList(states)
+                val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+                //Assert
+                assertEquals(2, states.size)
+                assertEquals(UiState.Ready(expectedFolderFormUiState), stateReady)
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folderId) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
             }
-
-            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
-
-            assertTrue("Expected Ready state", states[1] is UiState.Ready)
-            assertEquals(
-                UiState.Ready<FolderFormUiState>(expectedFolderFormUiState),
-                states[1]
-            )
-
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folderId) }
-            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
-
-            collectionJob.cancel()
         }
 
     @Test
@@ -253,32 +254,24 @@ class FolderFormViewModelTest {
                 songsUi = songs.toUiModelList(),
                 editableState = EditableState(isEditMode = true, isReorderingMode = true)
             )
-
             createViewModel(
                 folderId = folder.id,
                 folderToReturn = folder,
                 songsToReturn = songs
             )
+            collectUiStates { states ->
+                //Act
+                viewModel.enableEditMode()
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
 
-            val states = mutableListOf<UiState<FolderFormUiState>>()
-            val collectionJob = launch(UnconfinedTestDispatcher(testScheduler)) {
-                viewModel.uiState.toList(states)
+                val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+                //Assert
+                assertEquals(2, states.size)
+                assertEquals(UiState.Ready(expectedFolderFormUiState), stateReady)
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
             }
-
-            viewModel.enableEditMode()
-
-            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
-
-            assertTrue("Expected Ready state", states[1] is UiState.Ready)
-            assertEquals(
-                UiState.Ready<FolderFormUiState>(expectedFolderFormUiState),
-                states[1]
-            )
-
-            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
-            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
-
-            collectionJob.cancel()
         }
 
     @Test
@@ -642,6 +635,40 @@ class FolderFormViewModelTest {
                     "Expected listEditMode disabled",
                     stateReady2.result.editableState.isListEditMode
                 )
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+            }
+        }
+
+    @Test
+    fun `should swap the position items when receiving two different positions in swapPositionItems`() =
+        runTest {
+            val folder = Folder("Folder1", "Folder 1", 5, 123L)
+            val fromPosition = 0
+            val toPosition = 4
+            val songs = Fixtures.mockAllSongsDto().toDomainList()
+            val expectedSongs = songs.toMutableList().apply {
+                Collections.swap(this, fromPosition, toPosition)
+            }
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
+            )
+            collectUiStates { states ->
+                //Act
+                viewModel.swapPositionItems(fromPosition, toPosition)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+                viewModel.swapPositionItems(toPosition, fromPosition)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+                val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().first()
+                val stateReady2 = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+                //Assert
+                assertEquals(3, states.size)
+                assertEquals(expectedSongs.toUiModelList(), stateReady.result.songsUi)
+                assertEquals(songs.toUiModelList(), stateReady2.result.songsUi)
                 coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
                 coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
             }

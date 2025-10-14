@@ -5,5 +5,9 @@ data class Folder(
     val name: String,
     val musics: Int,
     val date: Long,
-    val isDefault: Boolean = false
-)
+    val isDefault: Boolean = false,
+) {
+    companion object {
+        fun empty() = Folder("", "", 0, 0L)
+    }
+}
