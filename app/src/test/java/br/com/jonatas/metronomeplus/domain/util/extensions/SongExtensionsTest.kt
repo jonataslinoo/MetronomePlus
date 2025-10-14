@@ -1,15 +1,16 @@
-package br.com.jonatas.metronomeplus.domain.util.filter
+package br.com.jonatas.metronomeplus.domain.util.extensions
 
 import br.com.jonatas.metronomeplus.data.mapper.toDomainList
 import br.com.jonatas.metronomeplus.domain.model.Song
 import br.com.jonatas.metronomeplus.domain.model.TimeSignature
 import br.com.jonatas.metronomeplus.util.Fixtures
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
-class SongFilterExtensionsTest {
+class SongExtensionsTest {
 
     private lateinit var testSongs: List<Song>
 
@@ -145,5 +146,50 @@ class SongFilterExtensionsTest {
         assertEquals(2, filteredSongs.size)
         assertEquals("Cruz", filteredSongs[0].title)
         assertEquals("Diante da Cruz", filteredSongs[1].title)
+    }
+
+    @Test
+    fun `should select songs when receiving a list with songIds`() {
+        val position = 0
+        val position2 = 3
+        val selectedIds = setOf(testSongs[position].id, testSongs[position2].id)
+
+        val selectedSongs = testSongs.selectSongs(selectedIds)
+
+        assertTrue(selectedSongs[position].selected)
+        assertTrue(selectedSongs[position2].selected)
+        assertEquals(2, selectedSongs.filter { song -> song.selected }.size)
+    }
+
+    @Test
+    fun `should deselect songs when receiving a list with preselected songIds`() {
+        val position = 0
+        val position2 = 3
+        val selectedIds = setOf(testSongs[position].id, testSongs[position2].id)
+        val selectedSongs = testSongs.selectSongs(selectedIds)
+
+        val deselectedSongs = selectedSongs.selectSongs(selectedIds)
+
+        assertFalse(deselectedSongs[position].selected)
+        assertFalse(deselectedSongs[position2].selected)
+        assertEquals(0, deselectedSongs.filter { song -> song.selected }.size)
+    }
+
+    @Test
+    fun `should do nothing when receiving a list with invalid songIds`() {
+        val selectedIds = setOf("11", "22")
+
+        val resultSongs = testSongs.selectSongs(selectedIds)
+
+        assertEquals(testSongs, resultSongs)
+    }
+
+    @Test
+    fun `should do nothing when receiving an empty selectedIds`() {
+        val selectedIds = emptySet<String>()
+
+        val result = testSongs.selectSongs(selectedIds)
+
+        assertEquals(testSongs, result)
     }
 }

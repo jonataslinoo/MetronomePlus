@@ -1,4 +1,4 @@
-package br.com.jonatas.metronomeplus.domain.util.filter
+package br.com.jonatas.metronomeplus.domain.util.extensions
 
 import br.com.jonatas.metronomeplus.domain.model.Song
 
@@ -19,4 +19,11 @@ fun List<Song>.filterSongs(query: String): List<Song> {
             else -> 2
         }
     }.thenBy { it.title }.thenBy { it.artist })
+}
+
+fun List<Song>.selectSongs(selectedIds: Set<String>): List<Song> {
+    return map { song ->
+        if (song.id in selectedIds) song.copy(selected = !song.selected)
+        else song
+    }
 }
