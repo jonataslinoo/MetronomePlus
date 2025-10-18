@@ -103,12 +103,15 @@ class FolderFormViewModel @Inject constructor(
         val barTitle = getBarTitle(editableState.isEditMode)
         val selectedSongs = songs.selectSongs(selectedIds)
         val filteredList = selectedSongs.filterSongs(query)
+
         val formUiState = FolderFormUiState(
             folderUi = folder.toUiModel(),
             barTitle = barTitle,
             songsUi = filteredList.toUiModelList(),
             editableState = editableState.copy(
-                isReorderingMode = folder.toUiModel().isDefaultOrEmptyId()
+                isReorderingMode =
+                    folder.toUiModel().isDefaultOrEmptyId() and
+                            (query.isEmpty() and query.isBlank())
             )
         )
 

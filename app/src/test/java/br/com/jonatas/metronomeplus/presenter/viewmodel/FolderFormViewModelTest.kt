@@ -7,6 +7,7 @@ import br.com.jonatas.metronomeplus.domain.model.Folder
 import br.com.jonatas.metronomeplus.domain.model.Song
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.GetFolderUseCase
 import br.com.jonatas.metronomeplus.domain.usecase.folderform.song.GetSongsByFolderUseCase
+import br.com.jonatas.metronomeplus.domain.util.extensions.filterSongs
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModel
 import br.com.jonatas.metronomeplus.presenter.mapper.toUiModelList
 import br.com.jonatas.metronomeplus.presenter.model.folder.FolderFormTitleMode
@@ -511,6 +512,69 @@ class FolderFormViewModelTest {
 
         collectionJob.cancel()
     }
+
+    @Test
+    fun `should not enabled reordering and swapping items when filtering songs`() = runTest {
+        val folder = Fixtures.mockFoldersDto.toDomainList()[1]
+        val crossRef = Fixtures.mockCrossRefList.filter { it.folderId == folder.id }
+        val songs = Fixtures.mockAllSongsDto().filter { songDto ->
+            crossRef.any { it.songId == songDto.id }
+        }.toDomainList().filterSongs("m")
+        createViewModel(
+            folderId = folder.id,
+            folderToReturn = folder,
+            songsToReturn = songs
+        )
+        collectUiStates { states ->
+            //Act
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+            viewModel.searchSongInfo("M")
+            mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+            val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().first()
+            val stateReady2 = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+            //Assert
+            assertTrue(stateReady.result.editableState.isReorderingMode)
+            assertFalse(stateReady2.result.editableState.isReorderingMode)
+            coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+            coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+        }
+    }
+
+    @Test
+    fun `should not enabled reordering and swapping items when filtering songs with whitespaces`() =
+        runTest {
+            val folder = Fixtures.mockFoldersDto.toDomainList()[1]
+            val position = 0
+            val position2 = 2
+            val crossRef = Fixtures.mockCrossRefList.filter { it.folderId == folder.id }
+            val songs = Fixtures.mockAllSongsDto().filter { songDto ->
+                crossRef.any { it.songId == songDto.id }
+            }.toDomainList().filterSongs(" ")
+            createViewModel(
+                folderId = folder.id,
+                folderToReturn = folder,
+                songsToReturn = songs
+            )
+            collectUiStates { states ->
+                //Act
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+                viewModel.searchSongInfo(" ")
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+                viewModel.swapPositionItems(position, position2)
+                mainCoroutineRule.testDispatcher.scheduler.advanceUntilIdle()
+
+                val stateReady = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().first()
+                val stateReady2 = states.filterIsInstance<UiState.Ready<FolderFormUiState>>().last()
+
+                //Assert
+                assertTrue(stateReady.result.editableState.isReorderingMode)
+                assertFalse(stateReady2.result.editableState.isReorderingMode)
+                coVerify(exactly = 1) { mockGetFolderUseCase(folderId = folder.id) }
+                coVerify(exactly = 1) { mockGetSongsByFolderUseCase(folder = folder) }
+            }
+        }
 
     @Test
     fun `should select a song when receive a valid songId`() = runTest {
